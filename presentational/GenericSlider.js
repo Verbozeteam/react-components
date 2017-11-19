@@ -232,8 +232,6 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       slider_size.height = height;
     }
 
-    console.log(this._slider_layout, slider_size);
-
     return (
       <View style={[this._container_layout, {backgroundColor}]}>
         <View {...this._panResponder.panHandlers}

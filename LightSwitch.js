@@ -4,8 +4,11 @@ import * as React from 'react';
 
 const GenericToggle = require('./presentational/GenericToggle');
 
+type PropsType = {
+  id: string,
+  update: () => null
+};
 
-type PropsType = {};
 type StateType = {
   intensity: number
 };
@@ -49,7 +52,8 @@ class LightSwitch extends React.Component<PropsType, StateType> {
 
     return (
       <GenericToggle selected={selected}
-        values={this._values} actions={this._actions} />
+        values={this._values}
+        actions={this._actions} />
     );
   }
 }
