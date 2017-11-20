@@ -4,33 +4,44 @@ import * as React from 'react';
 
 const GenericSlider = require('./presentational/GenericSlider');
 
+import type { LayoutType, StyleType } from './flowtypes';
+
 type PropsType = {
   id: string,
-  update: () => null
-};
+  intensity: number,
+  update: (id: string, object: Object) => null,
 
-type StateType = {
-  intensity: number
+  /* all of the following props are passed through to GenericSlider */
+  orientation?: 'vertical' | 'horizontal',
+  maximum?: number,
+  minimum?: number,
+  round?: (value: number) => number,
+
+  layout?: LayoutType,
+  fontColor?: string,
+  sliderGradient?: [string, string],
+  backgroundColor?: string,
+  sliderMargin?: number,
 };
 
 class LightDimmer extends React.Component<PropsType, StateType> {
+
+  static defaultProps = {
+    orientation: 'vertical',
+    maximum: 100,
+    minimum: 0,
+    round: (value: number) => Math.round(value),
+  };
 
   state = {
     intensity: 0
   };
 
-  /* props to be passed to GenericSlider */
-  _maximum_value: number = 100;
-  _minimum_value: number = 0;
-
-  round(value: number) {
-    return Math.round(value);
-  }
-
   changeIntensity(intensity: number) {
-    this.setState({
-      intensity
-    });
+    const { id, update } = this.props;
+
+    /* call passed in update callback */
+    update(id, {intensity});
   }
 
   render() {
@@ -38,10 +49,7 @@ class LightDimmer extends React.Component<PropsType, StateType> {
 
     return (
       <GenericSlider value={intensity}
-        orientation={'vertical'}
-        maximum={this._maximum_value}
-        minimum={this._minimum_value}
-        round={this.round.bind(this)}
+        {...this.props}
         onRelease={this.changeIntensity.bind(this)} />
     );
   }

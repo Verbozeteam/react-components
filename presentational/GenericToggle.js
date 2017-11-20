@@ -138,7 +138,6 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     if (index !== selected) {
       actions[index]();
     }
-
   }
 
   _onPanResponderRelease(evt: Object, gestureState: {moveX: number}) {

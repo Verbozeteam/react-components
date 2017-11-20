@@ -73,7 +73,8 @@ class GenericSlider extends React.Component<PropsType, StateType> {
   /* info: only calculated once using layout in props, if layout changes
      these do not update unless the component is remounted */
   _container_layout: LayoutType | StyleType;
-  _slider_layout: LayoutType | StyleType;
+  _slider_mask: LayoutType | StyleType;
+  _slider_layout: StyleType;
   _ratio: number;
 
   /* touch responder */
@@ -105,23 +106,36 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       }
     }
 
+    /* calculate the layout of the slider container */
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: layout.height / 2
+      borderRadius: layout.width / 2
     };
 
-    this._slider_layout = {
+    /* calculate the layout of the slider mask */
+    this._slider_mask = {
+      height: layout.height - sliderMargin * 2,
+      width: layout.width - sliderMargin * 2,
+      top: sliderMargin,
       left: sliderMargin,
-      bottom: sliderMargin,
-      borderRadius: (layout.height - sliderMargin * 2) / 2
+      borderRadius: (layout.width - sliderMargin * 2) / 2
     };
 
+
+    /* calculate the border radii of the slider itself depending on
+       orientation */
     if (orientation === 'horizontal') {
-      this._slider_layout.height = layout.height - sliderMargin * 2;
+      this._slider_layout = {
+        borderTopRightRadius: this._slider_mask.borderRadius,
+        borderBottomRightRadius: this._slider_mask.borderRadius,
+      }
     }
     else {
-      this._slider_layout.width = layout.width - sliderMargin * 2;
+      this._slider_layout = {
+        borderTopRightRadius: this._slider_mask.borderRadius,
+        borderTopLeftRadius: this._slider_mask.borderRadius,
+      };
     }
 
     this.calculateSliderRatio();
@@ -211,31 +225,29 @@ class GenericSlider extends React.Component<PropsType, StateType> {
 
     const slider_size: LayoutType = {};
     if (orientation === 'horizontal') {
-      slider_size.width = (value - minimum) * this._ratio;
-    }
-    else {
-      var height = (value - minimum) * this._ratio;
-      if (height < this._slider_layout.width) {
-        slider_size.width = height + height / 2;
-        slider_size.left = (this._slider_layout.width - height) / 4 + 5;
-
-
-        // slider_size.width = height - this._slider_layout.width;
-
-        // slider_size.borderBottomLeftRadius = height;
-        // slider_size.borderBottomRightRadius = height;
-        // slider_size.borderTopLeftRadius = 0;
-        // slider_size.borderTopRightRadius = 0;
-        // // slider_size.bottom = height - this._slider_layout.width + 5;
-        // // height = this._slider_layout.width;
+      const width = (value - minimum) * this._ratio;
+      if (width < this._slider_mask.height) {
+        slider_size.width = this._slider_mask.height;
+        slider_size.left = width - this._slider_mask.height;
+      } else {
+        slider_size.width = width;
       }
-      slider_size.height = height;
+    }
+
+    else {
+      const height = (value - minimum) * this._ratio;
+      if (height < this._slider_mask.width) {
+        slider_size.height = this._slider_mask.width;
+        slider_size.bottom = height - this._slider_mask.width;
+      } else {
+        slider_size.height = height;
+      }
     }
 
     return (
-      <View style={[this._container_layout, {backgroundColor}]}>
-        <View {...this._panResponder.panHandlers}
-          style={styles.slider_container}>
+      <View {...this._panResponder.panHandlers}
+        style={[this._container_layout, {backgroundColor}]}>
+        <View style={[styles.slider_mask, this._slider_mask]}>
           <LinearGradient colors={sliderGradient}
             start={{x: 1, y: 0}} end={{x: 0, y: 1}}
             style={[styles.slider, this._slider_layout, slider_size]}>
@@ -253,17 +265,16 @@ class GenericSlider extends React.Component<PropsType, StateType> {
 }
 
 const styles = StyleSheet.create({
-  slider_container: {
+  slider_mask: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    height: '100%',
-    width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   slider: {
-    position: 'absolute'
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    bottom: 0,
+    overflow: 'hidden'
   },
   value_container: {
     position: 'absolute',
