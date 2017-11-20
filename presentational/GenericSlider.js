@@ -8,9 +8,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import type { LayoutType, StyleType } from './flowtypes';
 
 type PropsType = {
-  // TODO: support vertical, will do once needed
-  orientation?: 'vertical' | 'horizontal',
-
   /* provide maximum and minimum inclusive value range and round function */
   value?: number,
   maximum?: number,
@@ -25,6 +22,7 @@ type PropsType = {
   onRelease?: (value: number) => null,
 
   /* override styling */
+  orientation?: 'vertical' | 'horizontal',
   layout?: LayoutType,
   fontColor?: string,
   sliderGradient?: [string, string],
