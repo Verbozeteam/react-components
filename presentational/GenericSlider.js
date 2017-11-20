@@ -68,8 +68,6 @@ class GenericSlider extends React.Component<PropsType, StateType> {
   _default_height: number = 70;
   _default_width: number = 250;
 
-  /* info: only calculated once using layout in props, if layout changes
-     these do not update unless the component is remounted */
   _container_layout: LayoutType | StyleType;
   _slider_mask: LayoutType | StyleType;
   _slider_layout: StyleType;
@@ -79,9 +77,6 @@ class GenericSlider extends React.Component<PropsType, StateType> {
   _panResponder: Object;
 
   componentWillMount() {
-    const { orientation, sliderMargin } = this.props;
-    var { layout } = this.props;
-
     /* create touch responder */
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -93,6 +88,69 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
+  }
+
+  _onPanResponderGrant() {
+    const { value, onStart } = this.props;
+
+    this.setState({
+      touch: true,
+      touch_value: value,
+      touch_start_value: value
+    });
+
+    /* call provided onStart handler */
+    onStart();
+  }
+
+  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {
+    const { orientation, maximum, minimum, round, onMove } = this.props;
+    const { touch_value, touch_start_value } = this.state;
+
+    /* calculate gesture distance and limit value to remain within range */
+    var new_value: number;
+    if (orientation === 'horizontal') {
+      new_value = touch_start_value + (gestureState.dx / this._ratio);
+    }
+    else {
+      new_value = touch_start_value - (gestureState.dy / this._ratio);
+    }
+    var rounded_new_value: number = round(new_value);
+
+    /* keep value within set bounds */
+    if (new_value > maximum) {
+      new_value = maximum;
+    }
+
+    else if (new_value < minimum) {
+      new_value = minimum;
+    }
+
+    this.setState({
+      touch_value: new_value
+    });
+
+    /* if rounded value has changed, call provided onMove handler */
+    if (rounded_new_value !== round(touch_value)) {
+      onMove(rounded_new_value);
+    }
+  }
+
+  _onPanResponderRelease() {
+    const { round, onRelease } = this.props;
+    const { touch_value } = this.state;
+
+    this.setState({
+      touch: false
+    });
+
+    /* call provided onRelease handler */
+    onRelease(round(touch_value));
+  }
+
+  calculateLayout() {
+    const { orientation, sliderMargin } = this.props;
+    var { layout } = this.props;
 
     /* layout has not been passed through props, fallback to default */
     if (!layout) {
@@ -134,65 +192,6 @@ class GenericSlider extends React.Component<PropsType, StateType> {
         borderTopLeftRadius: this._slider_mask.borderRadius,
       };
     }
-
-    this.calculateSliderRatio();
-  }
-
-  _onPanResponderGrant() {
-    const { value, onStart } = this.props;
-
-    this.setState({
-      touch: true,
-      touch_value: value,
-      touch_start_value: value
-    });
-
-    /* call provided onStart handler */
-    onStart();
-  }
-
-  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {
-    const { orientation, maximum, minimum, round, onMove } = this.props;
-    const { touch_value, touch_start_value } = this.state;
-
-    /* calculate gesture distance and limit value to remain within range */
-    var new_value: number;
-    if (orientation === 'horizontal') {
-      new_value = touch_start_value + (gestureState.dx / this._ratio);
-    }
-    else {
-      new_value = touch_start_value - (gestureState.dy / this._ratio);
-    }
-    var rounded_new_value: number = round(new_value);
-
-    if (new_value > maximum) {
-      new_value = maximum;
-    }
-
-    else if (new_value < minimum) {
-      new_value = minimum;
-    }
-
-    this.setState({
-      touch_value: new_value
-    });
-
-    /* if rounded value has changed, call provided onMove handler */
-    if (rounded_new_value !== round(touch_value)) {
-      onMove(rounded_new_value);
-    }
-  }
-
-  _onPanResponderRelease() {
-    const { round, onRelease } = this.props;
-    const { touch_value } = this.state;
-
-    this.setState({
-      touch: false
-    });
-
-    /* call provided onRelease handler */
-    onRelease(round(touch_value));
   }
 
   calculateSliderRatio() {
@@ -213,6 +212,10 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       backgroundColor } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
+
+    /* recalculate layout and ratio */
+    this.calculateLayout();
+    this.calculateSliderRatio();
 
     /* if touches began, override provided value */
     if (touch) {

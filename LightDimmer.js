@@ -46,6 +46,7 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     return (
       <GenericSlider value={intensity}
         {...this.props}
+        onMove={this.changeIntensity.bind(this)}
         onRelease={this.changeIntensity.bind(this)} />
     );
   }
