@@ -9,9 +9,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import type { LayoutType, StyleType } from './flowtypes';
 
 type PropsType = {
-  // TODO: support vertical, will do once needed though
-  orientation?: 'vertical' | 'horizontal',
-
   /* provide two arrays with the same length, the values to be shown in the
      toggle, as well as the respective function calls (actions)*/
   selected?: number,
@@ -19,6 +16,8 @@ type PropsType = {
   actions?: Array<() => null>,
 
   /* override styling */
+  // TODO: support vertical, will do once needed though
+  orientation?: 'vertical' | 'horizontal',
   layout?: LayoutType,
   fontColor?: string,
   selectedGradient?: [string, string],

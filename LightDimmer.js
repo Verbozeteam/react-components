@@ -33,10 +33,6 @@ class LightDimmer extends React.Component<PropsType, StateType> {
     round: (value: number) => Math.round(value),
   };
 
-  state = {
-    intensity: 0
-  };
-
   changeIntensity(intensity: number) {
     const { id, update } = this.props;
 
@@ -45,7 +41,7 @@ class LightDimmer extends React.Component<PropsType, StateType> {
   }
 
   render() {
-    const { intensity } = this.state;
+    const { intensity } = this.props;
 
     return (
       <GenericSlider value={intensity}

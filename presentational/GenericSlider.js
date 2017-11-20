@@ -120,7 +120,6 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       borderRadius: (layout.width - sliderMargin * 2) / 2
     };
 
-
     /* calculate the border radii of the slider itself depending on
        orientation */
     if (orientation === 'horizontal') {
@@ -221,6 +220,7 @@ class GenericSlider extends React.Component<PropsType, StateType> {
       sliderGradient = highlightGradient;
     }
 
+    /* calculate the size of slider */
     const slider_size: LayoutType = {};
     if (orientation === 'horizontal') {
       const width = (value - minimum) * this._ratio;
