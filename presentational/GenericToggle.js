@@ -72,8 +72,12 @@ class GenericToggle extends React.Component<PropsType, StateType> {
   /* touch responder */
   _panResponder: Object;
 
-  /* component x-axis position relative to screen */
+  /* component x-axis and y-axis position relative to screen */
   _x_pos: number;
+  _y_pos: number;
+
+  /* reference to container object used to obtain component position */
+  _container_ref: Object;
 
   componentWillMount() {
     const { layout, values, selectedMargin } = this.props;
@@ -110,19 +114,31 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     this.createValues();
   }
 
-  _onPanResponderGrant() {
+  _onPanResponderGrant(evt: Object, gestureState: {x0: number}) {
+    this.updateSelected(gestureState.x0);
+
     this.setState({
       touch: true
     });
+
   }
 
   _onPanResponderMove(evt: Object, gestureState: {moveX: number}) {
+    this.updateSelected(gestureState.moveX)
+  }
+
+  _onPanResponderRelease() {
+    this.setState({
+      touch: false
+    });
+  }
+
+  updateSelected(x_touch: number) {
     const { selected, actions } = this.props;
 
     /* get index of toggle position of touch x position */
-    const x = gestureState.moveX - this._x_pos;
+    const x = x_touch - this._x_pos;
     var index = Math.floor(x / this._selected_layout.width);
-
 
     /* if index out of bounds set within bounds */
     if (index >= this._values.length) {
@@ -130,21 +146,13 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     }
 
     else if (index < 0) {
-      index = 0;
+      index = 0
     }
 
     /* only call action if index has changed */
     if (index !== selected) {
       actions[index]();
     }
-  }
-
-  _onPanResponderRelease(evt: Object, gestureState: {moveX: number}) {
-    this._onPanResponderMove(evt, gestureState);
-
-    this.setState({
-      touch: false
-    });
   }
 
   createValues() {
@@ -190,8 +198,11 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     }).start();
   }
 
-  _onLayout(event: Object) {
-    this._x_pos = event.nativeEvent.layout.x;
+  _measure() {
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      this._y_pos = pageY;
+    });
   }
 
   render() {
@@ -212,7 +223,8 @@ class GenericToggle extends React.Component<PropsType, StateType> {
 
     return (
       <View {...this._panResponder.panHandlers}
-        onLayout={this._onLayout.bind(this)}
+        ref={c => this._container_ref = c}
+        onLayout={this._measure.bind(this)}
         style={[this._container_layout, {backgroundColor}]}>
         <Animated.View style={selected_position}>
           <LinearGradient colors={selectedGradient}
