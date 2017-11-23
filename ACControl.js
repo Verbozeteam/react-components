@@ -40,13 +40,11 @@ class ACControl extends React.Component<PropsType, StateType> {
   }
 
   round(value: number) {
-    console.log('round');
     return (Math.round(value * 2) / 2).toFixed(1);
   }
 
   formatText(text: string) {
     const { fan_speed } = this.state;
-    console.log(text);
 
     if (fan_speed) {
       return text + '°C';
