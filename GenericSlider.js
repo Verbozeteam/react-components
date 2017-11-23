@@ -119,15 +119,15 @@ class GenericSlider extends React.Component<PropsType, StateType> {
 
     /* keep value within set bounds */
     if (new_value > maximum) {
-      new_value = maximum;
+      rounded_new_value = maximum;
     }
 
     else if (new_value < minimum) {
-      new_value = minimum;
+      rounded_new_value = minimum;
     }
 
     this.setState({
-      touch_value: new_value
+      touch_value: rounded_new_value
     });
 
     /* if rounded value has changed, call provided onMove handler */
