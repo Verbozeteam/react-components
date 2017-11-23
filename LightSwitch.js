@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-const GenericToggle = require('./presentational/GenericToggle');
+const GenericToggle = require('./GenericToggle');
 
 type PropsType = {
   id: string,

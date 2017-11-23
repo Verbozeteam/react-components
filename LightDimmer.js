@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-const GenericSlider = require('./presentational/GenericSlider');
+const GenericSlider = require('./GenericSlider');
 
 import type { LayoutType, StyleType } from './flowtypes';
 

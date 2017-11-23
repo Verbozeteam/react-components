@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, Animated, TouchableOpacity, PanResponder,
+import { View, Text, Image, Animated, TouchableOpacity, PanResponder,
    StyleSheet } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -18,11 +18,13 @@ type PropsType = {
   /* override styling */
   // TODO: support vertical, will do once needed though
   orientation?: 'vertical' | 'horizontal',
+  icon?: number, /* this must be result of require(<image>) */
   layout?: LayoutType,
   fontColor?: string,
   selectedGradient?: [string, string],
   highlightGradient?: [string, string],
   backgroundColor?: string,
+  iconBackgroundColor?: string,
   selectedMargin?: number,
 
   //TODO: for the future
@@ -36,10 +38,10 @@ type StateType = {
 class GenericToggle extends React.Component<PropsType, StateType> {
 
   static defaultProps = {
-    orientation: 'horizontal',
     selected: 0,
     values: ['On', 'Off'],
     actions: [() => null, () => null],
+    orientation: 'horizontal',
     layout: {
       height: 70,
       width: 250
@@ -48,6 +50,7 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     selectedGradient: ['#36DBFD', '#178BFB'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
     backgroundColor: '#181B31',
+    iconBackgroundColor: '#0C0F26',
     selectedMargin: 5,
     nightMode: true,
   };
@@ -63,11 +66,13 @@ class GenericToggle extends React.Component<PropsType, StateType> {
      these do not update unless the component is remounted */
   _container_layout: LayoutType | StyleType;
   _selected_layout: LayoutType | StyleType;
-
+  _icon_container_layout: LayoutType | StyleType;
+  _icon_layout: LayoutType;
 
   /* info: only created once, if values change or actions changes update
      won't show until component is remounted */
-  _values: Array<React.ComponentType> = [];
+  _values: Array<React.ComponentType>;
+  _num_values: number;
 
   /* touch responder */
   _panResponder: Object;
@@ -80,7 +85,7 @@ class GenericToggle extends React.Component<PropsType, StateType> {
   _container_ref: Object;
 
   componentWillMount() {
-    const { layout, values, selectedMargin } = this.props;
+    const { layout, values, icon, selectedMargin } = this.props;
 
     /* create touch responder */
     this._panResponder = PanResponder.create({
@@ -94,10 +99,11 @@ class GenericToggle extends React.Component<PropsType, StateType> {
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
 
+    /* calculate container layout and selected layout */
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: layout.height / 2
+      borderRadius: layout.height / 2,
     };
 
     this._selected_layout = {
@@ -108,6 +114,24 @@ class GenericToggle extends React.Component<PropsType, StateType> {
       borderRadius: (layout.height - selectedMargin * 2) / 2,
       top: selectedMargin
     };
+
+    /* calculate icon layout */
+    if (icon) {
+      this._container_layout.marginLeft = layout.height / 2 * -1;
+
+      this._icon_container_layout = {
+        height: layout.height,
+        width: layout.height + (layout.height / 2),
+        borderTopLeftRadius: layout.height / 2,
+        borderBottomLeftRadius: layout.height / 2
+      };
+
+      this._icon_layout = {
+        height: layout.height - selectedMargin * 2,
+        width: layout.height - selectedMargin * 2,
+        marginRight: layout.height / 2,
+      };
+    }
 
     this._animation_position = new Animated.Value(selectedMargin);
 
@@ -120,7 +144,6 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     this.setState({
       touch: true
     });
-
   }
 
   _onPanResponderMove(evt: Object, gestureState: {moveX: number}) {
@@ -156,7 +179,9 @@ class GenericToggle extends React.Component<PropsType, StateType> {
   }
 
   createValues() {
-    const { values, selectedMargin, fontColor } = this.props;
+    const { values, icon, selectedMargin, fontColor } = this.props;
+
+    this._values = [];
 
     /* loop through all values provided and create respective JSX */
     for (var i = 0; i < values.length; i++) {
@@ -206,7 +231,8 @@ class GenericToggle extends React.Component<PropsType, StateType> {
   }
 
   render() {
-    const { highlightGradient, backgroundColor } = this.props;
+    const { highlightGradient, backgroundColor, icon, iconBackgroundColor }
+      = this.props;
     var { selectedGradient } = this.props;
     const { touch } = this.state;
 
@@ -222,19 +248,26 @@ class GenericToggle extends React.Component<PropsType, StateType> {
     }
 
     return (
-      <View {...this._panResponder.panHandlers}
-        ref={c => this._container_ref = c}
-        onLayout={this._measure.bind(this)}
-        style={[this._container_layout, {backgroundColor}]}>
-        <Animated.View style={selected_position}>
-          <LinearGradient colors={selectedGradient}
-            start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-            style={this._selected_layout}>
-          </LinearGradient>
-        </Animated.View>
+      <View style={styles.container}>
+        {(icon) ?
+          <View style={[this._icon_container_layout,
+            styles.icon_container, {backgroundColor: iconBackgroundColor}]}>
+            <Image style={this._icon_layout} source={icon} />
+          </View> : null}
+        <View {...this._panResponder.panHandlers}
+          ref={c => this._container_ref = c}
+          onLayout={this._measure.bind(this)}
+          style={[this._container_layout, {backgroundColor}]}>
+          <Animated.View style={selected_position}>
+            <LinearGradient colors={selectedGradient}
+              start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+              style={this._selected_layout}>
+            </LinearGradient>
+          </Animated.View>
 
-        <View style={styles.values_container}>
-          {this._values}
+          <View style={styles.values_container}>
+            {this._values}
+          </View>
         </View>
       </View>
     );
@@ -242,11 +275,23 @@ class GenericToggle extends React.Component<PropsType, StateType> {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row'
+  },
+  icon_container: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   values_container: {
     position: 'absolute',
     height: '100%',
     width: '100%',
     flexDirection: 'row',
+  },
+  icon: {
+    marginLeft: -35,
+    height: 60,
+    width: 60
   },
   value: {
     flex: 1,

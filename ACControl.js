@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const GenericCircularSlider = require('./presentational/GenericCircularSlider');
-const GenericToggle = require('./presentational/GenericToggle');
+const GenericCircularSlider = require('./GenericCircularSlider');
+const GenericToggle = require('./GenericToggle');
 
 class ACControl extends React.Component<PropsType, StateType> {
 
@@ -25,6 +25,8 @@ class ACControl extends React.Component<PropsType, StateType> {
     () => this.changeFan(2)
   ];
 
+  _fan_icon = require('./assets/fan.png');
+
   changeFan(speed: number) {
     this.setState({
       fan_speed: speed
@@ -38,11 +40,13 @@ class ACControl extends React.Component<PropsType, StateType> {
   }
 
   round(value: number) {
+    console.log('round');
     return (Math.round(value * 2) / 2).toFixed(1);
   }
 
   formatText(text: string) {
     const { fan_speed } = this.state;
+    console.log(text);
 
     if (fan_speed) {
       return text + '°C';
@@ -62,6 +66,11 @@ class ACControl extends React.Component<PropsType, StateType> {
           formatText={this.formatText.bind(this)}
           onRelease={this.temperatureChange.bind(this)}/>
         <GenericToggle values={this._fan_speeds}
+          icon={this._fan_icon}
+          layout={{
+            height: 70,
+            width: 250
+          }}
           actions={this._fan_actions} selected={fan_speed} />
         <Text style={styles.room_temperature}>
           Room Temperature is 25°C

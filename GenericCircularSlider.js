@@ -61,11 +61,11 @@ class GenericCircularSlider extends React.Component<PropsType, StateType> {
     onRelease: () => null,
     arc: 250,
     diameter: 300,
-    knobGradient: ['#181B31', '#181B31'],
-    highlightGradient: ['#444444', '#444444'],
-    backgroundGradient: ['#2368AE', '#F03B4B'],
+    knobGradient: ['#36DBFD', '#178BFB'],
+    highlightGradient: ['#41FFFF', '#1CA7FF'],
+    backgroundGradient: ['#181B31', '#181B31'],
     backgroundStroke: '#181B31',
-    knobDiameter: 70,
+    knobDiameter: 50,
     arcWidth: 30,
     arcMargin: 5,
   };
@@ -339,7 +339,7 @@ class GenericCircularSlider extends React.Component<PropsType, StateType> {
         </LinearGradient>
 
         <Text style={styles.temperature}>
-          {formatText(value.toString())}
+          {formatText(round(value).toString())}
         </Text>
       </View>
     );
