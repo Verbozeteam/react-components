@@ -24,6 +24,7 @@ type PropTypes = {
   /* override styling */
   orientation?: 'vertical' | 'horizontal',
   layout?: LayoutType,
+  showValue?: boolean,
   fontColor?: string,
   sliderGradient?: [string, string],
   backgroundColor?: string,
@@ -50,6 +51,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     onStart: () => null,
     onMove: () => null,
     onRelease: () => null,
+    showValue: false,
     fontColor: '#FFFFFF',
     sliderGradient: ['#36DBFD', '#178BFB'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
@@ -103,7 +105,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     onStart();
   }
 
-  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {    
+  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {
     const { orientation, maximum, minimum, round, onMove } = this.props;
     const { touch_value, touch_start_value } = this.state;
 
@@ -209,7 +211,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
 
   render() {
     const { orientation, minimum, round, fontColor, highlightGradient,
-      backgroundColor } = this.props;
+      backgroundColor, showValue } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
 
@@ -245,6 +247,15 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       }
     }
 
+    var value_text = null;
+    if (showValue) {
+      value_text = <View style={styles.value_container}>
+        <Text style={[styles.value_text, {color: fontColor}]}>
+          {round(value)}
+        </Text>
+      </View>
+    }
+
     return (
       <View {...this._panResponder.panHandlers}
         style={[this._container_layout, {backgroundColor}]}>
@@ -253,12 +264,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
             start={{x: 1, y: 0}} end={{x: 0, y: 1}}
             style={[styles.slider, this._slider_layout, slider_size]}>
           </LinearGradient>
-
-          <View style={styles.value_container}>
-            <Text style={[styles.value_text, {color: fontColor}]}>
-              {round(value)}
-            </Text>
-          </View>
+          {value_text}
         </View>
       </View>
     );
