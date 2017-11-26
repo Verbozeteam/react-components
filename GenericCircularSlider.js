@@ -79,6 +79,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   /* info: only calculated once */
   _knob_layout: LayoutType | StyleType;
+  _svg_layout: LayoutType | StateType;
   _container_layout: LayoutType;
 
   /* touch responder */
@@ -108,7 +109,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     });
 
     this.createArc();
-    this.createContainerLayout();
+    this.createSvgAndContainerLayout();
     this.createKnobLayout();
   }
 
@@ -225,22 +226,29 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     const radius = diameter / 2 - knobDiameter / 2;
     const overflow = (knobDiameter - arcWidth) / 2 - arcMargin;
     return {
-      left: (radius + overflow) * Math.cos(angle) + radius,
-      top: (radius + overflow) * Math.sin(angle) + radius
+      left: (radius + overflow) * Math.cos(angle) + radius + this._svg_layout.left,
+      top: (radius + overflow) * Math.sin(angle) + radius + this._svg_layout.top
     }
   }
 
-  createContainerLayout() {
-    const { diameter, arc, arcWidth } = this.props;
+  createSvgAndContainerLayout() {
+    const { diameter, arc, arcWidth, knobDiameter } = this.props;
 
     const angle = (360 - arc) * Math.PI / 180;
 
     /* calculate height of circle segment that is not part of arc */
     const extra_height = diameter / 2 * (1 - Math.cos(angle / 2));
 
-    this._container_layout = {
+    this._svg_layout = {
       height: diameter - extra_height + arcWidth,
-      width: diameter
+      width: diameter,
+      top: (knobDiameter - arcWidth) / 4 + 1,
+      left: (knobDiameter - arcWidth) / 4 + 1,
+    };
+
+    this._container_layout = {
+      height: this._svg_layout.height + this._svg_layout.top * 2,
+      width: this._svg_layout.width + this._svg_layout.left * 2
     };
   }
 
@@ -319,7 +327,9 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
         ref={c => this._container_ref = c}
         onLayout={this._measure.bind(this)}
         style={[styles.container, this._container_layout]}>
-        <Svg width={this._container_layout.width} height={this._container_layout.height}>
+        <Svg width={this._svg_layout.width} height={this._svg_layout.height}
+          style={[styles.svg,
+            {top: this._svg_layout.top, left: this._svg_layout.left}]}>
           <Defs>
             <SvgLinearGradient id={'gradient'}
               x1={0} y1={diameter / 2} x2={diameter} y2={diameter / 2}>
@@ -354,6 +364,9 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  svg: {
+    position: 'absolute'
   },
   knob: {
     position: 'absolute',
