@@ -135,15 +135,20 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   _onPanResponderMove(evt: Object, gestureState: {moveX: number,
     moveY: number}) {
-    const { value, onMove } = this.props;
+    const { value, onMove, minimum, maximum } = this.props;
+    const { touch_angle, touch_value } = this.state;
 
-    const touch_angle = this.calculateAngleFromCoord(gestureState.moveX,
+    var new_touch_angle = this.calculateAngleFromCoord(gestureState.moveX,
       gestureState.moveY);
-    const touch_value = this.calculateValueFromAngle(touch_angle);
+    var new_touch_value = this.calculateValueFromAngle(new_touch_angle);
+
+    if (Math.abs(new_touch_value - touch_value) > (maximum - minimum) / 2) {
+      return;
+    }
 
     this.setState({
-      touch_angle,
-      touch_value
+      touch_angle: new_touch_angle,
+      touch_value: new_touch_value
     });
 
     /* if value has changed, call provided onMove handler */
@@ -196,6 +201,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   }
 
   calculateValueFromAngle(angle: number): number {
+    const { touch_value } = this.state;
     const { maximum, minimum, arc, round } = this.props;
 
     /* convert angle to degrees with where top of circle is 0, right is positive
