@@ -17,7 +17,6 @@ type PropTypes = {
   maximum?: number,
   minimum?: number,
   round?: (value: number) => number,
-  formatText: (number) => string,
   onStart?: (value: number) => null,
   /* onMove doesn't necessarily need to update value passed through props -
      circular slider live updates on it's own */
@@ -36,7 +35,6 @@ type PropTypes = {
   highlightGradient?: [string, string],
   backgroundGradient?: [string, string],
   backgroundStroke?: string,
-  fontColor?: string,
   knobWidth?: number,
   arcWidth?: number,
   arcMargin?: number,
@@ -60,7 +58,6 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     maximum: 100,
     minimum: 0,
     round: (value) => Math.round(value),
-    formatText: (string) => string,
     onStart: () => null,
     onMove: () => null,
     onRelease: () => null,
@@ -316,8 +313,8 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   render() {
     const { diameter, highlightGradient, backgroundGradient,
-      backgroundStroke, knobDiameter, arcWidth, arcMargin, round, formatText,
-      fontColor, disabled, knobDisabledGradient } = this.props;
+      backgroundStroke, knobDiameter, arcWidth, arcMargin, round, disabled,
+      knobDisabledGradient } = this.props;
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
@@ -344,7 +341,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       <View {...panHandlers}
         ref={c => this._container_ref = c}
         onLayout={this._measure.bind(this)}
-        style={[styles.container, this._container_layout]}>
+        style={this._container_layout}>
         <Svg width={this._svg_layout.width} height={this._svg_layout.height}
           style={[styles.svg,
             {top: this._svg_layout.top, left: this._svg_layout.left}]}>
@@ -368,31 +365,17 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
           start={{x: 1, y: 0}} end={{x: 0, y: 1}}
           style={[styles.knob, this._knob_layout, knob_position]}>
         </LinearGradient>
-
-        <Text style={[styles.temperature, {color: fontColor}]}>
-          {formatText(round(value))}
-        </Text>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   svg: {
     position: 'absolute'
   },
   knob: {
     position: 'absolute',
-  },
-  temperature: {
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    position: 'absolute',
-    fontSize: 50,
-    fontWeight: 'bold'
   }
 });
 
