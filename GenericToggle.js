@@ -85,7 +85,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   _container_ref: Object;
 
   componentWillMount() {
-    const { layout, values, icon, selectedMargin } = this.props;
+    const { layout, values, icon, selected, selectedMargin } = this.props;
 
     /* create touch responder */
     this._panResponder = PanResponder.create({
@@ -133,7 +133,15 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       };
     }
 
-    this._animation_position = new Animated.Value(selectedMargin);
+    var position: number = this._selected_layout.width * selected;
+    if (selected === 0) {
+      position += selectedMargin;
+    }
+    else if (selected === values.length - 1) {
+      position -= selectedMargin;
+    }
+
+    this._animation_position = new Animated.Value(position);
 
     this.createValues();
   }
