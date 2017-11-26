@@ -6,7 +6,7 @@ const GenericSlider = require('./GenericSlider');
 
 import type { LayoutType, StyleType } from './flowtypes';
 
-type PropsType = {
+type PropTypes = {
   id: string,
   intensity: number,
   update: (id: string, object: Object) => null,
@@ -24,7 +24,7 @@ type PropsType = {
   sliderMargin?: number,
 };
 
-class LightDimmer extends React.Component<PropsType, StateType> {
+class LightDimmer extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
     orientation: 'vertical',

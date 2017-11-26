@@ -4,7 +4,7 @@ import * as React from 'react';
 
 const GenericToggle = require('./GenericToggle');
 
-type PropsType = {
+type PropTypes = {
   id: string,
   update: () => null
 };
@@ -13,7 +13,7 @@ type StateType = {
   intensity: number
 };
 
-class LightSwitch extends React.Component<PropsType, StateType> {
+class LightSwitch extends React.Component<PropTypes, StateType> {
 
   state = {
     intensity: 0

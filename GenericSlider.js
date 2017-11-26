@@ -7,7 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import type { LayoutType, StyleType } from './flowtypes';
 
-type PropsType = {
+type PropTypes = {
   /* provide maximum and minimum inclusive value range and round function */
   value?: number,
   maximum?: number,
@@ -39,7 +39,7 @@ type StateType = {
   touch_start_value: number
 };
 
-class GenericSlider extends React.Component<PropsType, StateType> {
+class GenericSlider extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
     orientation: 'horizontal',
@@ -103,7 +103,7 @@ class GenericSlider extends React.Component<PropsType, StateType> {
     onStart();
   }
 
-  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {
+  _onPanResponderMove(evt: Object, gestureState: {dx: number, dy: number}) {    
     const { orientation, maximum, minimum, round, onMove } = this.props;
     const { touch_value, touch_start_value } = this.state;
 

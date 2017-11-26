@@ -9,7 +9,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import type { LayoutType, StyleType } from './flowtypes';
 
-type PropsType = {
+type PropTypes = {
   /* provide maximum and minimum inclusive range and round function */
   value?: number,
   maximum?: number,
@@ -33,6 +33,7 @@ type PropsType = {
   highlightGradient?: [string, string],
   backgroundGradient?: [string, string],
   backgroundStroke?: string,
+  fontColor?: string,
   knobWidth?: number,
   arcWidth?: number,
   arcMargin?: number,
@@ -48,7 +49,7 @@ type StateType = {
   touch_angle: number
 };
 
-class GenericCircularSlider extends React.Component<PropsType, StateType> {
+class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
     value: 50,
@@ -113,6 +114,9 @@ class GenericCircularSlider extends React.Component<PropsType, StateType> {
 
   _onPanResponderGrant(evt: Object, gestureState: {x0: number, y0: number}) {
     const { onStart } = this.props;
+
+    /* get position of element on screen for touch offset calculation */
+    this._measure();
 
     const touch_angle = this.calculateAngleFromCoord(gestureState.x0,
       gestureState.y0);
@@ -293,8 +297,8 @@ class GenericCircularSlider extends React.Component<PropsType, StateType> {
 
   render() {
     const { diameter, highlightGradient, backgroundGradient,
-      backgroundStroke, knobDiameter, arcWidth, arcMargin, round, formatText }
-      = this.props;
+      backgroundStroke, knobDiameter, arcWidth, arcMargin, round, formatText,
+      fontColor } = this.props;
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
@@ -338,7 +342,7 @@ class GenericCircularSlider extends React.Component<PropsType, StateType> {
           style={[styles.knob, this._knob_layout, knob_position]}>
         </LinearGradient>
 
-        <Text style={styles.temperature}>
+        <Text style={[styles.temperature, {color: fontColor}]}>
           {formatText(round(value).toString())}
         </Text>
       </View>

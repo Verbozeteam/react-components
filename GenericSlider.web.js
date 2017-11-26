@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import type { LayoutType, StyleType } from './flowtypes';
 
-type PropsType = {
+type PropTypes = {
   // TODO: support vertical, will do once needed
   orientation?: 'vertical' | 'horizontal',
 
@@ -34,7 +34,7 @@ type PropsType = {
 
 type StateType = {};
 
-class GenericSlider extends React.Component<PropsType, StateType> {
+class GenericSlider extends React.Component<PropTypes, StateType> {
 
   render() {
     return (

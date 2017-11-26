@@ -6,7 +6,15 @@ import { View, Text, StyleSheet } from 'react-native';
 const GenericCircularSlider = require('./GenericCircularSlider');
 const GenericToggle = require('./GenericToggle');
 
-class ACControl extends React.Component<PropsType, StateType> {
+type PropTypes = {
+  fontColor?: string
+};
+
+class ACControl extends React.Component<PropTypes, StateType> {
+
+  static defaultProps = {
+    fontColor: '#FFFFFF'
+  };
 
   state = {
     fan_speed: 1,
@@ -54,6 +62,7 @@ class ACControl extends React.Component<PropsType, StateType> {
   }
 
   render() {
+    const { fontColor } = this.props;
     const { fan_speed, temperature, room_temperature } = this.state;
 
     return (
@@ -61,6 +70,7 @@ class ACControl extends React.Component<PropsType, StateType> {
         <GenericCircularSlider value={temperature}
           minimum={16} maximum={30}
           round={this.round.bind(this)}
+          fontColor={fontColor}
           formatText={this.formatText.bind(this)}
           onRelease={this.temperatureChange.bind(this)}/>
         <GenericToggle values={this._fan_speeds}
@@ -69,8 +79,9 @@ class ACControl extends React.Component<PropsType, StateType> {
             height: 70,
             width: 250
           }}
-          actions={this._fan_actions} selected={fan_speed} />
-        <Text style={styles.room_temperature}>
+          actions={this._fan_actions}
+          selected={fan_speed} />
+        <Text style={[styles.room_temperature, {color: fontColor}]}>
           Room Temperature is 25°C
         </Text>
       </View>

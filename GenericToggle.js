@@ -8,7 +8,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import type { LayoutType, StyleType } from './flowtypes';
 
-type PropsType = {
+type PropTypes = {
   /* provide two arrays with the same length, the values to be shown in the
      toggle, as well as the respective function calls (actions)*/
   selected?: number,
@@ -35,7 +35,7 @@ type StateType = {
   touch: boolean;
 };
 
-class GenericToggle extends React.Component<PropsType, StateType> {
+class GenericToggle extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
     selected: 0,
@@ -99,6 +99,8 @@ class GenericToggle extends React.Component<PropsType, StateType> {
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
 
+    console.log(this.props.actions);
+
     /* calculate container layout and selected layout */
     this._container_layout = {
       height: layout.height,
@@ -140,6 +142,9 @@ class GenericToggle extends React.Component<PropsType, StateType> {
 
   _onPanResponderGrant(evt: Object, gestureState: {x0: number}) {
     this.updateSelected(gestureState.x0);
+
+    /* get position of element on screen for touch offset calculation */
+    this._measure();
 
     this.setState({
       touch: true
