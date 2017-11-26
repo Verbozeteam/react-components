@@ -19,6 +19,7 @@ class ACControl extends React.Component<PropTypes, StateType> {
   state = {
     fan_speed: 1,
     temperature: 22,
+    temperatureDisabled: false
   };
 
   _fan_speeds = [
@@ -36,8 +37,14 @@ class ACControl extends React.Component<PropTypes, StateType> {
   _fan_icon = require('./assets/fan.png');
 
   changeFan(speed: number) {
+    var temperatureDisabled = false;
+    if (speed == 0) {
+      temperatureDisabled = true;
+    }
+
     this.setState({
-      fan_speed: speed
+      fan_speed: speed,
+      temperatureDisabled,
     });
   }
 
@@ -47,29 +54,30 @@ class ACControl extends React.Component<PropTypes, StateType> {
     });
   }
 
-  round(value: number) {
-    return (Math.round(value * 2) / 2).toFixed(1);
+  round(value: number): number {
+    return parseFloat((Math.round(value * 2) / 2).toFixed(1));
   }
 
-  formatText(text: string) {
+  formatText(value: number) {
     const { fan_speed } = this.state;
 
     if (fan_speed) {
-      return text + '°C';
+      return value.toFixed(1) + '°C';
     }
-
     return 'Off';
   }
 
   render() {
     const { fontColor } = this.props;
-    const { fan_speed, temperature, room_temperature } = this.state;
+    const { fan_speed, temperature, room_temperature, temperatureDisabled }
+      = this.state;
 
     return (
       <View style={styles.container}>
         <GenericCircularSlider value={temperature}
           minimum={16} maximum={30}
           round={this.round.bind(this)}
+          disabled={temperatureDisabled}
           fontColor={fontColor}
           formatText={this.formatText.bind(this)}
           onRelease={this.temperatureChange.bind(this)}/>

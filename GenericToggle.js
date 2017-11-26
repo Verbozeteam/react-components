@@ -99,8 +99,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
 
-    console.log(this.props.actions);
-
     /* calculate container layout and selected layout */
     this._container_layout = {
       height: layout.height,

@@ -10,12 +10,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import type { LayoutType, StyleType } from './flowtypes';
 
 type PropTypes = {
+  disabled?: boolean,
+
   /* provide maximum and minimum inclusive range and round function */
   value?: number,
   maximum?: number,
   minimum?: number,
   round?: (value: number) => number,
-  formatText: (string) => string,
+  formatText: (number) => string,
   onStart?: (value: number) => null,
   /* onMove doesn't necessarily need to update value passed through props -
      circular slider live updates on it's own */
@@ -30,6 +32,7 @@ type PropTypes = {
 
   /* override styling */
   knobGradient?: [string, string],
+  knobDisabledGradient?: [string, string],
   highlightGradient?: [string, string],
   backgroundGradient?: [string, string],
   backgroundStroke?: string,
@@ -52,6 +55,7 @@ type StateType = {
 class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
+    disable: false,
     value: 50,
     maximum: 100,
     minimum: 0,
@@ -63,6 +67,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     arc: 250,
     diameter: 300,
     knobGradient: ['#36DBFD', '#178BFB'],
+    knobDisabledGradient: ['#AFAFAF', '#8A8A8A'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
     backgroundGradient: ['#181B31', '#181B31'],
     backgroundStroke: '#181B31',
@@ -312,7 +317,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   render() {
     const { diameter, highlightGradient, backgroundGradient,
       backgroundStroke, knobDiameter, arcWidth, arcMargin, round, formatText,
-      fontColor } = this.props;
+      fontColor, disabled, knobDisabledGradient } = this.props;
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
@@ -328,8 +333,15 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       knob_position = this.calculateKnobPositionFromAngle(angle);
     }
 
+    var panHandlers = {};
+    if (!disabled) {
+      panHandlers = this._panResponder.panHandlers;
+    } else {
+      knobGradient = knobDisabledGradient;
+    }
+
     return (
-      <View {...this._panResponder.panHandlers}
+      <View {...panHandlers}
         ref={c => this._container_ref = c}
         onLayout={this._measure.bind(this)}
         style={[styles.container, this._container_layout]}>
@@ -352,14 +364,13 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
               strokeLinecap={'round'} fill={'none'} />
         </Svg>
 
-        <LinearGradient {...this._panResponder.panHandlers}
-          colors={knobGradient}
+        <LinearGradient colors={knobGradient}
           start={{x: 1, y: 0}} end={{x: 0, y: 1}}
           style={[styles.knob, this._knob_layout, knob_position]}>
         </LinearGradient>
 
         <Text style={[styles.temperature, {color: fontColor}]}>
-          {formatText(round(value).toString())}
+          {formatText(round(value))}
         </Text>
       </View>
     );
