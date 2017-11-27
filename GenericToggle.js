@@ -235,12 +235,10 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   }
 
   _measure() {
-    if (this._container_ref) {
-      this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-        this._x_pos = pageX;
-        this._y_pos = pageY;
-      });
-    }
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      this._y_pos = pageY;
+    });
   }
 
   render() {

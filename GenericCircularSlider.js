@@ -318,6 +318,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
+
     var knob_position: {left: number, top: number};
     if (touch) {
       knobGradient = highlightGradient;
