@@ -235,6 +235,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     }).start();
   }
 
+<<<<<<< HEAD
   _measure(callback) {
     this._container_ref.measure((x, y, width, height, pageX, pageY) => {
       this._x_pos = pageX;
@@ -243,6 +244,12 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       if (typeof callback == 'function') {
         callback();
       }
+=======
+  _measure() {
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      this._y_pos = pageY;
+>>>>>>> bd4124fb4e6dd2fbd816b80e5f0d585bd75da5e7
     });
   }
 
