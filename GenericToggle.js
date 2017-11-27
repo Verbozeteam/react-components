@@ -147,13 +147,14 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   }
 
   _onPanResponderGrant(evt: Object, gestureState: {x0: number}) {
-    this.updateSelected(gestureState.x0);
 
     /* get position of element on screen for touch offset calculation */
-    this._measure();
+    this._measure(() => {
+      this.updateSelected(gestureState.x0);
 
-    this.setState({
-      touch: true
+      this.setState({
+        touch: true
+      });
     });
   }
 
@@ -234,13 +235,15 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     }).start();
   }
 
-  _measure() {
-    if (this._container_ref) {
-      this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-        this._x_pos = pageX;
-        this._y_pos = pageY;
-      });
-    }
+  _measure(callback) {
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      this._y_pos = pageY;
+
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
   }
 
   render() {

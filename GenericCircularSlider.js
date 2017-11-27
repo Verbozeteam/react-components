@@ -119,20 +119,20 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     const { onStart } = this.props;
 
     /* get position of element on screen for touch offset calculation */
-    this._measure();
+    this._measure(() => {
+      const touch_angle = this.calculateAngleFromCoord(gestureState.x0,
+        gestureState.y0);
+      const touch_value = this.calculateValueFromAngle(touch_angle);
 
-    const touch_angle = this.calculateAngleFromCoord(gestureState.x0,
-      gestureState.y0);
-    const touch_value = this.calculateValueFromAngle(touch_angle);
+      this.setState({
+        touch: true,
+        touch_angle,
+        touch_value
+      });
 
-    this.setState({
-      touch: true,
-      touch_angle,
-      touch_value
+      /* call provided onStart handler */
+      onStart(touch_value);
     });
-
-    /* call provided onStart handler */
-    onStart(touch_value);
   }
 
   _onPanResponderMove(evt: Object, gestureState: {moveX: number,
@@ -304,10 +304,14 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     ].join(' ');
   }
 
-  _measure() {
+  _measure(callback) {
     this._container_ref.measure((x, y, width, height, pageX, pageY) => {
       this._x_pos = pageX;
       this._y_pos = pageY;
+
+      if (typeof callback == 'function') {
+        callback();
+      }
     });
   }
 
