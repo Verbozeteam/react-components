@@ -243,6 +243,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       if (typeof callback == 'function') {
         callback();
       }
+    });
   }
 
   render() {
