@@ -42,10 +42,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     values: ['On', 'Off'],
     actions: [() => null, () => null],
     orientation: 'horizontal',
-    layout: {
-      height: 70,
-      width: 250
-    },
     fontColor: '#FFFFFF',
     selectedGradient: ['#36DBFD', '#178BFB'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
@@ -58,6 +54,10 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   state = {
     touch: false
   };
+
+  /* default height and width for toggle if non provided through props */
+  _default_height: number = 70;
+  _default_width: number = 250;
 
   /* animated offset of the toggle selector */
   _animation_position: Object;
@@ -85,8 +85,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   _container_ref: Object;
 
   componentWillMount() {
-    const { layout, values, icon, selected, selectedMargin } = this.props;
-
     /* create touch responder */
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -99,6 +97,144 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
 
+    this.calculateLayout();
+    this.calculateAnimationPosition(true);
+    this.createValues();
+  }
+
+  _onPanResponderGrant(evt: Object, gestureState: {x0: number, y0: number}) {
+
+    /* get position of element on screen for touch offset calculation */
+    this._measure(() => {
+      this.updateSelected(gestureState.x0, gestureState.y0);
+
+      this.setState({
+        touch: true
+      });
+    });
+  }
+
+  _onPanResponderMove(evt: Object, gestureState: {moveX: number, moveY: number}) {
+    this.updateSelected(gestureState.moveX, gestureState.moveY)
+  }
+
+  _onPanResponderRelease() {
+    this.setState({
+      touch: false
+    });
+  }
+
+  updateSelected(x_touch: number, y_touch: number) {
+    const { selected, actions, orientation } = this.props;
+
+    var index = 0;
+    if (orientation === 'horizontal') {
+      /* get index of toggle position of touch x position */
+      const x = x_touch - this._x_pos;
+      index = Math.floor(x / this._selected_layout.width);
+    }
+
+    else {
+      /* get index of toggle position of touch y position */
+      const y = y_touch - this._y_pos;
+      index = Math.floor(y / this._selected_layout.height);
+    }
+
+    /* if index out of bounds set within bounds */
+    if (index >= this._values.length) {
+      index = this._values.length - 1;
+    }
+
+    else if (index < 0) {
+      index = 0
+    }
+
+    /* only call action if index has changed */
+    if (index !== selected) {
+      actions[index]();
+    }
+  }
+
+  createValues() {
+    const { values, icon, orientation, selectedMargin, fontColor } = this.props;
+
+    this._values = [];
+
+    /* loop through all values provided and create respective JSX */
+    for (var i = 0; i < values.length; i++) {
+      const value_style: StyleType = {
+        color: fontColor
+      };
+      /* create left or right margin if value is first or last */
+      if (i === 0) {
+        if (orientation === 'horizontal') {
+          value_style.marginLeft = selectedMargin;
+        } else {
+          value_style.marginTop = selectedMargin;
+        }
+      }
+      else if (i === values.length - 1) {
+        if (orientation === 'horizontal') {
+          value_style.marginRight = selectedMargin;
+        } else {
+          value_style.marginBottom = selectedMargin;
+        }
+      }
+
+      this._values.push(
+        <View key={'value' + i} style={styles.value}>
+          <Text style={[styles.value_text, value_style]}>
+            {values[i]}
+          </Text>
+        </View>
+      );
+    }
+  }
+
+  calculateAnimationPosition(initial?: boolean) {
+    const { orientation, selected, selectedMargin, values } = this.props;
+
+    var position: number = 0;
+    if (orientation === 'horizontal') {
+      position = this._selected_layout.width * selected;
+    } else {
+      position = this._selected_layout.height * selected;
+    }
+
+
+    if (selected === 0) {
+      position += selectedMargin;
+    }
+    else if (selected === values.length - 1) {
+      position -= selectedMargin;
+    }
+
+    if (initial) {
+      this._animation_position = new Animated.Value(position);
+    }
+
+    else {
+      Animated.timing(this._animation_position, {
+        toValue: position,
+        duration: 150
+      }).start();
+    }
+  }
+
+  calculateLayout() {
+    const { orientation, selectedMargin, icon, selected, values } = this.props;
+    var { layout } = this.props;
+
+    /* layout has not been passed through props, fallback to default */
+    if (!layout) {
+      layout = {
+        height: (orientation === 'horizontal') ?
+          this._default_height : this._default_width,
+        width: (orientation === 'horizontal') ?
+          this._default_width : this._default_height
+      };
+    }
+
     /* calculate container layout and selected layout */
     this._container_layout = {
       height: layout.height,
@@ -108,12 +244,20 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
     this._selected_layout = {
       position: 'absolute',
-      height: layout.height - selectedMargin * 2,
-      // TODO: make this dynamic to values array strings lengths
-      width: layout.width / values.length,
       borderRadius: (layout.height - selectedMargin * 2) / 2,
-      top: selectedMargin
     };
+
+    if (orientation === 'horizontal') {
+      this._selected_layout.height = layout.height - selectedMargin * 2;
+      this._selected_layout.width = layout.width / values.length;
+      this._selected_layout.top = selectedMargin;
+    }
+
+    else {
+      this._selected_layout.height = layout.height / values.length;
+      this._selected_layout.width = layout.width  - selectedMargin * 2;
+      this._selected_layout.left = selectedMargin;
+    }
 
     /* calculate icon layout */
     if (icon) {
@@ -132,107 +276,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
         marginRight: layout.height / 2,
       };
     }
-
-    var position: number = this._selected_layout.width * selected;
-    if (selected === 0) {
-      position += selectedMargin;
-    }
-    else if (selected === values.length - 1) {
-      position -= selectedMargin;
-    }
-
-    this._animation_position = new Animated.Value(position);
-
-    this.createValues();
-  }
-
-  _onPanResponderGrant(evt: Object, gestureState: {x0: number}) {
-
-    /* get position of element on screen for touch offset calculation */
-    this._measure(() => {
-      this.updateSelected(gestureState.x0);
-
-      this.setState({
-        touch: true
-      });
-    });
-  }
-
-  _onPanResponderMove(evt: Object, gestureState: {moveX: number}) {
-    this.updateSelected(gestureState.moveX)
-  }
-
-  _onPanResponderRelease() {
-    this.setState({
-      touch: false
-    });
-  }
-
-  updateSelected(x_touch: number) {
-    const { selected, actions } = this.props;
-
-    /* get index of toggle position of touch x position */
-    const x = x_touch - this._x_pos;
-    var index = Math.floor(x / this._selected_layout.width);
-
-    /* if index out of bounds set within bounds */
-    if (index >= this._values.length) {
-      index = this._values.length - 1;
-    }
-
-    else if (index < 0) {
-      index = 0
-    }
-
-    /* only call action if index has changed */
-    if (index !== selected) {
-      actions[index]();
-    }
-  }
-
-  createValues() {
-    const { values, icon, selectedMargin, fontColor } = this.props;
-
-    this._values = [];
-
-    /* loop through all values provided and create respective JSX */
-    for (var i = 0; i < values.length; i++) {
-      const value_style: StyleType = {
-        color: fontColor
-      };
-      /* create left or right margin if value is first or last */
-      if (i === 0) {
-        value_style.marginLeft = selectedMargin;
-      }
-      else if (i === values.length - 1) {
-        value_style.marginRight = selectedMargin;
-      }
-
-      this._values.push(
-        <View key={'value' + i} style={styles.value}>
-          <Text style={[styles.value_text, value_style]}>
-            {values[i]}
-          </Text>
-        </View>
-      );
-    }
-  }
-
-  calculateAnimationPosition() {
-    const { selected, selectedMargin, values } = this.props;
-
-    var position: number = this._selected_layout.width * selected;
-    if (selected === 0) {
-      position += selectedMargin;
-    }
-    else if (selected === values.length - 1) {
-      position -= selectedMargin;
-    }
-
-    Animated.timing(this._animation_position, {
-      toValue: position,
-      duration: 150
-    }).start();
   }
 
   _measure(callback) {
@@ -247,17 +290,20 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   }
 
   render() {
-    const { highlightGradient, backgroundColor, icon, iconBackgroundColor }
-      = this.props;
+    const { highlightGradient, backgroundColor, icon, iconBackgroundColor,
+      orientation } = this.props;
     var { selectedGradient } = this.props;
     const { touch } = this.state;
 
     /* calculate animation position of toggle selector */
     this.calculateAnimationPosition();
 
-    const selected_position: LayoutType = {
-      left: this._animation_position
-    };
+    const selected_position: LayoutType = {};
+    if (orientation === 'horizontal') {
+      selected_position.left = this._animation_position;
+    } else {
+      selected_position.top = this._animation_position;
+    }
 
     if (touch) {
       selectedGradient = highlightGradient;
@@ -281,7 +327,8 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
             </LinearGradient>
           </Animated.View>
 
-          <View style={styles.values_container}>
+          <View style={[styles.values_container,
+            {flexDirection: (orientation == 'horizontal') ? 'row' : 'column'}]}>
             {this._values}
           </View>
         </View>
@@ -302,7 +349,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: '100%',
     width: '100%',
-    flexDirection: 'row',
   },
   icon: {
     marginLeft: -35,

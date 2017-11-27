@@ -161,7 +161,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
           this._default_height : this._default_width,
         width: (orientation === 'horizontal') ?
           this._default_width : this._default_height
-      }
+      };
     }
 
     /* calculate the layout of the slider container */
