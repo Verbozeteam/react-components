@@ -14,6 +14,7 @@ type PropTypes = {
   selected?: number,
   values?: Array<string>,
   actions?: Array<() => null>,
+  sameSameValue?: boolean,
 
   /* override styling */
   // TODO: support vertical, will do once needed though
@@ -41,6 +42,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     selected: 0,
     values: ['On', 'Off'],
     actions: [() => null, () => null],
+    sameSameValue: false,
     orientation: 'horizontal',
     fontColor: '#FFFFFF',
     selectedGradient: ['#36DBFD', '#178BFB'],
@@ -125,7 +127,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   }
 
   updateSelected(x_touch: number, y_touch: number) {
-    const { selected, actions, orientation } = this.props;
+    const { selected, actions, orientation, sameSameValue } = this.props;
 
     var index = 0;
     if (orientation === 'horizontal') {
@@ -150,7 +152,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     }
 
     /* only call action if index has changed */
-    if (index !== selected) {
+    if (index !== selected || sameSameValue) {
       actions[index]();
     }
   }
