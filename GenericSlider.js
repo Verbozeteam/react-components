@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, PanResponder, StyleSheet } from 'react-native';
+import { View, Animated, Text, PanResponder, StyleSheet } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -24,8 +24,6 @@ type PropTypes = {
   /* override styling */
   orientation?: 'vertical' | 'horizontal',
   layout?: LayoutType,
-  showValue?: boolean,
-  fontColor?: string,
   sliderGradient?: [string, string],
   backgroundColor?: string,
   sliderMargin?: number,
@@ -41,7 +39,6 @@ type StateType = {
 };
 
 class GenericSlider extends React.Component<PropTypes, StateType> {
-
   static defaultProps = {
     orientation: 'horizontal',
     value: 50,
@@ -51,8 +48,6 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     onStart: () => null,
     onMove: () => null,
     onRelease: () => null,
-    showValue: false,
-    fontColor: '#FFFFFF',
     sliderGradient: ['#36DBFD', '#178BFB'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
     backgroundColor: '#181B31',
@@ -70,6 +65,10 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   _default_height: number = 70;
   _default_width: number = 250;
 
+  /* animated value and old value used for animation speed calculation */
+  _animated_value: Object;
+  _old_value: number = 0;
+
   _container_layout: LayoutType | StyleType;
   _slider_mask: LayoutType | StyleType;
   _slider_layout: StyleType;
@@ -79,6 +78,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   _panResponder: Object;
 
   componentWillMount() {
+    const { value } = this.props;
+
     /* create touch responder */
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -90,6 +91,10 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       onPanResponderMove: this._onPanResponderMove.bind(this),
       onPanResponderRelease: this._onPanResponderRelease.bind(this)
     });
+
+    this.calculateLayout();
+    this.calculateSliderRatio();
+    this.calculateAnimatedValue(true);
   }
 
   _onPanResponderGrant() {
@@ -145,6 +150,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this.setState({
       touch: false
     });
+
+    this._old_value = touch_value;
 
     /* call provided onRelease handler */
     onRelease(round(touch_value));
@@ -209,9 +216,48 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     }
   }
 
+  getSliderPosition(value) {
+    const { minimum } = this.props;
+    return (value - minimum) * this._ratio;
+  }
+
+  calculateAnimatedValue(initial?: boolean) {
+    const { maximum, minimum, value } = this.props;
+
+    const position = this.getSliderPosition(value);
+
+    if (initial) {
+      this._animated_value = new Animated.Value(position);
+    }
+
+    else {
+      this._animated_value.stopAnimation();
+      Animated.timing(this._animated_value, {
+        toValue: position,
+        duration: Math.abs(450 / (maximum - minimum) * (value - this._old_value))
+      }).start();
+    }
+  }
+
+  _measure(callback) {
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      this._y_pos = pageY;
+
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
+  }
+
+  componentWillReceiveProps() {
+    const { value } = this.props;
+    this._old_value = value;
+  }
+
   render() {
-    const { orientation, minimum, round, fontColor, highlightGradient,
-      backgroundColor, showValue } = this.props;
+    const { orientation, highlightGradient, backgroundColor, round, minimum }
+      = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
 
@@ -219,53 +265,35 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this.calculateLayout();
     this.calculateSliderRatio();
 
-    /* if touches began, override provided value */
+    var position: number;
     if (touch) {
-      value = touch_value;
+      position = this.getSliderPosition(touch_value);
       sliderGradient = highlightGradient;
+    } else {
+      // position = this.getSliderPosition(touch_value);
+      // sliderGradient = highlightGradient;
+      this.calculateAnimatedValue();
+      position = this._animated_value;
     }
 
-    /* calculate the size of slider */
     const slider_size: LayoutType = {};
-    if (orientation === 'horizontal') {
-      const width = (value - minimum) * this._ratio;
-      if (width < this._slider_mask.height) {
-        slider_size.width = this._slider_mask.height;
-        slider_size.left = width - this._slider_mask.height;
-      } else {
-        slider_size.width = width;
-      }
+    if (orientation ==='horizontal') {
+      slider_size.width = position;
     }
 
     else {
-      const height = (value - minimum) * this._ratio;
-      if (height < this._slider_mask.width) {
-        slider_size.height = this._slider_mask.width;
-        slider_size.bottom = height - this._slider_mask.width;
-      } else {
-        slider_size.height = height;
-      }
-    }
-
-    var value_text = null;
-    if (showValue) {
-      value_text = <View style={styles.value_container}>
-        <Text style={[styles.value_text, {color: fontColor}]}>
-          {round(value)}
-        </Text>
-      </View>
+      slider_size.height = position;
     }
 
     return (
       <View {...this._panResponder.panHandlers}
         style={[this._container_layout, {backgroundColor}]}>
-        <View style={[styles.slider_mask, this._slider_mask]}>
+        <Animated.View style={[styles.slider_mask, this._slider_mask, slider_size]}>
           <LinearGradient colors={sliderGradient}
             start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-            style={[styles.slider, this._slider_layout, slider_size]}>
+            style={[styles.slider, this._slider_layout]}>
           </LinearGradient>
-          {value_text}
-        </View>
+        </Animated.View>
       </View>
     );
   }
@@ -282,21 +310,6 @@ const styles = StyleSheet.create({
     width: '100%',
     bottom: 0,
     overflow: 'hidden'
-  },
-  value_container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    height: '100%',
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  value_text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0)'
   }
 });
 
