@@ -90,6 +90,10 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   /* arc path */
   _arc_path: string;
 
+  /* animated angle */
+  _animated_angle: Object;
+  _old_angle: number;
+
   /* component x-axis and y-axis position relative to screen */
   _x_pos: number;
   _y_pos: number;
@@ -313,6 +317,16 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
         callback();
       }
     });
+  }
+
+  calculateAngleAnimation() {
+    
+  }
+
+  componentDidUpdate(prevProps: PropTypes) {
+
+    this._old_angle = prevProps.value;
+    this.calculateAngleAnimation();
   }
 
   render() {

@@ -267,7 +267,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
       this._icon_container_layout = {
         height: layout.height,
-        width: layout.height + (layout.height / 2),
+        width: layout.height * 3 / 2,
         borderTopLeftRadius: layout.height / 2,
         borderBottomLeftRadius: layout.height / 2
       };
