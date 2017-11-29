@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, PanResponder, StyleSheet } from 'react-native';
+import { View, Image, Text, PanResponder, StyleSheet } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -23,11 +23,13 @@ type PropTypes = {
 
   /* override styling */
   orientation?: 'vertical' | 'horizontal',
+  icon?: number, /* this must be result of require(<image>) */
   layout?: LayoutType,
   showValue?: boolean,
   fontColor?: string,
   sliderGradient?: [string, string],
   backgroundColor?: string,
+  iconBackgroundColor?: string,
   sliderMargin?: number,
 
   // TODO: for the futrue
@@ -56,6 +58,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     sliderGradient: ['#36DBFD', '#178BFB'],
     highlightGradient: ['#41FFFF', '#1CA7FF'],
     backgroundColor: '#181B31',
+    iconBackgroundColor: '#0C0F26',
     sliderMargin: 5,
     nightMode: true,
   };
@@ -74,6 +77,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   _slider_mask: LayoutType | StyleType;
   _slider_layout: StyleType;
   _ratio: number;
+  _icon_container_layout: LayoutType | StyleType;
+  _icon_layout: LayoutType;
 
   /* touch responder */
   _panResponder: Object;
@@ -151,7 +156,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   }
 
   calculateLayout() {
-    const { orientation, sliderMargin } = this.props;
+    const { orientation, sliderMargin, icon } = this.props;
     var { layout } = this.props;
 
     /* layout has not been passed through props, fallback to default */
@@ -171,13 +176,32 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       borderRadius: layout.width / 2
     };
 
+    /* calculate icon layout */
+    if (icon) {
+      this._container_layout.marginLeft = layout.height / 2 * -1;
+      this._container_layout.width -= layout.height;
+    }
+
+    this._icon_container_layout = {
+      height: layout.height,
+      width: layout.height * 3 / 2,
+      borderTopLeftRadius: layout.height / 2,
+      borderBottomLeftRadius: layout.height / 2
+    };
+
+    this._icon_layout = {
+      height: layout.height * 3 / 4,
+      width: layout.height * 3 / 4,
+      marginRight: layout.height / 2
+    };
+
     /* calculate the layout of the slider mask */
     this._slider_mask = {
-      height: layout.height - sliderMargin * 2,
-      width: layout.width - sliderMargin * 2,
+      height: this._container_layout.height - sliderMargin * 2,
+      width: this._container_layout.width - sliderMargin * 2,
       top: sliderMargin,
       left: sliderMargin,
-      borderRadius: (layout.width - sliderMargin * 2) / 2
+      borderRadius: (this._container_layout.width - sliderMargin * 2) / 2
     };
 
     /* calculate the border radii of the slider itself depending on
@@ -211,7 +235,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
 
   render() {
     const { orientation, minimum, round, fontColor, highlightGradient,
-      backgroundColor, showValue } = this.props;
+      backgroundColor, showValue, icon, iconBackgroundColor } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
 
@@ -258,20 +282,34 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
 
     return (
       <View {...this._panResponder.panHandlers}
-        style={[this._container_layout, {backgroundColor}]}>
-        <View style={[styles.slider_mask, this._slider_mask]}>
-          <LinearGradient colors={sliderGradient}
-            start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-            style={[styles.slider, this._slider_layout, slider_size]}>
-          </LinearGradient>
-          {value_text}
-        </View>
+        style={styles.container}>
+        {(icon) ? <View style={[this._icon_container_layout,
+          styles.icon_container, {backgroundColor: iconBackgroundColor}]}>
+            <Image style={this._icon_layout} source={icon} />
+          </View> : null}
+
+          <View style={[this._container_layout, {backgroundColor}]}>
+            <View style={[styles.slider_mask, this._slider_mask]}>
+              <LinearGradient colors={sliderGradient}
+                start={{x: 1, y: 0}} end={{x: 0, y: 1}}
+                style={[styles.slider, this._slider_layout, slider_size]}>
+              </LinearGradient>
+              {value_text}
+            </View>
+          </View>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row'
+  },
+  icon_container: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   slider_mask: {
     position: 'absolute',
     overflow: 'hidden',
