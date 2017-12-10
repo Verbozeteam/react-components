@@ -54,7 +54,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   };
 
   state = {
-    touch: false
+    touch: false,
   };
 
   /* default height and width for toggle if non provided through props */
@@ -78,6 +78,11 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
   /* touch responder */
   _panResponder: Object;
+
+  /* used in conjuction withs sameSame to determine whether to send or not
+     when touch ends */
+  _has_sent: boolean;
+  _measured: boolean;
 
   /* component x-axis and y-axis position relative to screen */
   _x_pos: number;
@@ -105,29 +110,57 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   }
 
   _onPanResponderGrant(evt: Object, gestureState: {x0: number, y0: number}) {
+    const { selected, actions } = this.props;
+
+    /* set to false whenever touches begin */
+    this._has_sent = false;
+    this._measured = false;
 
     /* get position of element on screen for touch offset calculation */
     this._measure(() => {
-      this.updateSelected(gestureState.x0, gestureState.y0);
+      this._measured = true;
+
+      const index = this.getTouchIndex(gestureState.x0, gestureState.y0);
+
+      /* only call action if index has changed */
+      if (index !== selected) {
+        actions[index]();
+        this._has_sent = true;
+      }
 
       this.setState({
-        touch: true
+        touch: true,
       });
     });
   }
 
   _onPanResponderMove(evt: Object, gestureState: {moveX: number, moveY: number}) {
-    this.updateSelected(gestureState.moveX, gestureState.moveY)
+    const { selected, actions } = this.props;
+
+    if (this._measured) {
+      const index = this.getTouchIndex(gestureState.moveX, gestureState.moveY);
+
+      if (index !== selected) {
+        actions[index]();
+        this._has_sent = true;
+      }
+    }
   }
 
   _onPanResponderRelease() {
+    const { selected, actions, sameSameValue } = this.props;
+
+    if (sameSameValue && !this._has_sent) {
+      actions[selected]();
+    }
+
     this.setState({
       touch: false
     });
   }
 
-  updateSelected(x_touch: number, y_touch: number) {
-    const { selected, actions, orientation, sameSameValue } = this.props;
+  getTouchIndex(x_touch: number, y_touch: number): number {
+    const { selected, actions, orientation } = this.props;
 
     var index = 0;
     if (orientation === 'horizontal') {
@@ -139,7 +172,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     else {
       /* get index of toggle position of touch y position */
       const y = y_touch - this._y_pos;
-      index = Math.floor(y / this._selected_layout.height);
+      index = Math.floor(y / this._selected_layout.width);
     }
 
     /* if index out of bounds set within bounds */
@@ -148,13 +181,10 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     }
 
     else if (index < 0) {
-      index = 0
+      index = 0;
     }
 
-    /* only call action if index has changed */
-    if (index !== selected || sameSameValue) {
-      actions[index]();
-    }
+    return index;
   }
 
   createValues() {
