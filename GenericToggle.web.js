@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
+import ReactDOM from 'react-dom';
 
 type LayoutType = {
   width: number,
@@ -60,8 +61,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
   state = {
     touch: false,
-    startX: 0,
-    startY: 0,
   };
 
   /* default height and width for toggle if non provided through props */
@@ -86,7 +85,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   /* used in conjuction withs sameSame to determine whether to send or not
      when touch ends */
   _has_sent: boolean;
-  _measured: boolean;
 
   /* component x-axis and y-axis position relative to screen */
   _x_pos: number;
@@ -106,39 +104,40 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
     /* set to false whenever touches begin */
     this._has_sent = false;
-    this._measured = false;
 
-    /* get position of element on screen for touch offset calculation */
-    this._measure(() => {
-      this._measured = true;
+    var bounds = ReactDOM
+      .findDOMNode(this._container_ref)
+      .getBoundingClientRect();
+    var x = e.clientX - bounds.left;
+    var y = e.clientY - bounds.top;
+    const index = this.getTouchIndex(x, y);
 
-      const index = this.getTouchIndex(e.clientX, e.clientY);
 
-      /* only call action if index has changed */
-      if (index !== selected) {
-        actions[index]();
-        this._has_sent = true;
-      }
+    /* only call action if index has changed */
+    if (index !== selected) {
+      actions[index]();
+      this._has_sent = true;
+    }
 
-      this.setState({
-        touch: true,
-        startX: e.clientX,
-        startY: e.clientY,
-      });
+    this.setState({
+      touch: true,
     });
   }
 
   onMouseMove(e: Object) {
     const { selected, actions } = this.props;
-    const { startX, startY } = this.state;
+    const { touch } = this.state;
 
-    if (this._measured) {
-      const index = this.getTouchIndex(e.clientX - startX, e.clientY - startY);
+    var bounds = ReactDOM
+      .findDOMNode(this._container_ref)
+      .getBoundingClientRect();
+    var x = e.clientX - bounds.left;
+    var y = e.clientY - bounds.top;
+    const index = this.getTouchIndex(x, y);
 
-      if (index !== selected) {
-        actions[index]();
-        this._has_sent = true;
-      }
+    if (index !== selected && touch) {
+      actions[index]();
+      this._has_sent = true;
     }
   }
 
@@ -154,32 +153,20 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     });
   }
 
-  getTouchIndex(x_touch: number, y_touch: number): number {
+  getTouchIndex(x: number, y: number): number {
     const { selected, actions, orientation } = this.props;
 
     var index = 0;
     if (orientation === 'horizontal') {
       /* get index of toggle position of touch x position */
-      const x = x_touch - this._x_pos;
-      index = Math.floor(x / this._selected_layout.width);
-    }
-
-    else {
+      index = Math.floor(this.props.values.length * x / this._container_layout.width);
+    } else {
       /* get index of toggle position of touch y position */
-      const y = y_touch - this._y_pos;
-      index = Math.floor(y / this._selected_layout.width);
+      index = Math.floor(this.props.values.length * y / this._container_layout.height);
     }
 
     /* if index out of bounds set within bounds */
-    if (index >= this._values.length) {
-      index = this._values.length - 1;
-    }
-
-    else if (index < 0) {
-      index = 0;
-    }
-
-    return index;
+    return Math.min(Math.max(index, 0), this._values.length - 1);
   }
 
   createValues() {
@@ -210,7 +197,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
       this._values.push(
         <div key={'value' + i} style={styles.value}>
-          <div style={[styles.value_text, value_style]}>
+          <div style={{...styles.value_text, ...value_style}}>
             {values[i]}
           </div>
         </div>
@@ -235,6 +222,8 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     else if (selected === values.length - 1) {
       position -= selectedMargin;
     }
+
+    this._animation_position = position;
 
     if (initial) {
       //this._animation_position = new Animated.Value(position);
@@ -264,6 +253,8 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
     /* calculate container layout and selected layout */
     this._container_layout = {
+      position: 'relative',
+      display: 'flex',
       height: layout.height,
       width: layout.width,
       borderRadius: layout.height / 2,
@@ -305,17 +296,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     }
   }
 
-  _measure(callback) {
-    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-      this._x_pos = pageX;
-      this._y_pos = pageY;
-
-      if (typeof callback == 'function') {
-        callback();
-      }
-    });
-  }
-
   render() {
     const { highlightGradient, backgroundColor, icon, iconBackgroundColor,
       orientation } = this.props;
@@ -325,7 +305,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     /* calculate animation position of toggle selector */
     this.calculateAnimationPosition();
 
-    const selected_position: LayoutType = {};
+    var selected_position: LayoutType = {position: 'relative', display: 'flex'};
     if (orientation === 'horizontal') {
       selected_position.left = this._animation_position;
     } else {
@@ -348,14 +328,13 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
           onMouseMove={this.onMouseMove.bind(this)}
           onMouseUp={this.onMouseUp.bind(this)}
           ref={c => this._container_ref = c}
-          onLayout={this._measure.bind(this)}
-          style={[this._container_layout, {backgroundColor}]}>
+          style={{...this._container_layout, ...{backgroundColor}}}>
           <div style={selected_position}>
             <div style={{...this._selected_layout, ...{background: 'linear-gradient(to bottom left, '+selectedGradient[0]+', '+selectedGradient[1]+')'}}} />
           </div>
 
-          <div style={[styles.values_container,
-            {flexDirection: (orientation == 'horizontal') ? 'row' : 'column'}]}>
+          <div style={{...styles.values_container,
+            ...{flexDirection: (orientation == 'horizontal') ? 'row' : 'column'}}}>
             {this._values}
           </div>
         </div>
