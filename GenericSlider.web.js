@@ -171,6 +171,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       height: layout.height,
       width: layout.width,
       borderRadius: 50000, //layout.width / 2
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     /* calculate icon layout */
@@ -184,6 +185,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       width: layout.height * 3 / 2,
       borderTopLeftRadius: 50000, //layout.height / 2,
       borderBottomLeftRadius: 50000, //layout.height / 2
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     this._icon_layout = {
@@ -303,7 +305,8 @@ const styles = {
   container: {
     position: 'relative',
     display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
   },
   icon_container: {
     position: 'relative',

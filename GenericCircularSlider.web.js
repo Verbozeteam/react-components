@@ -90,12 +90,6 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   /* reference to container object used to obtain component position */
   _container_ref: Object;
 
-  componentWillMount() {
-    this.createArc();
-    this.createSvgAndContainerLayout();
-    this.createKnobLayout();
-  }
-
   onMouseDown(evt: Object) {
     const { onStart } = this.props;
 
@@ -240,13 +234,16 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       width: diameter,
       top: (knobDiameter - arcWidth) / 4 + 1,
       left: (knobDiameter - arcWidth) / 4 + 1,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     this._container_layout = {
       position: 'relative',
       display: 'flex',
       height: this._svg_layout.height + this._svg_layout.top * 2,
-      width: this._svg_layout.width + this._svg_layout.left * 2
+      width: this._svg_layout.width + this._svg_layout.left * 2,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
+      overflow: 'none',
     };
   }
 
@@ -257,7 +254,8 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     this._knob_layout = {
       height: knobDiameter,
       width: knobDiameter,
-      borderRadius: knobDiameter / 2
+      borderRadius: knobDiameter / 2,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
   }
 
@@ -305,6 +303,9 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
+    this.createArc();
+    this.createSvgAndContainerLayout();
+    this.createKnobLayout();
 
     var knob_position: {left: number, top: number};
     if (touch) {

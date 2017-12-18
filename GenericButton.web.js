@@ -55,10 +55,6 @@ class GenericButton extends React.Component<PropTypes, StateType> {
   _container_layout: Object;
   _button_layout: Object;
 
-  componentWillMount() {
-    this.calculateLayout();
-  }
-
   calculateLayout() {
     const { layout, buttonMargin, borderRadius } = this.props;
 
@@ -106,6 +102,8 @@ class GenericButton extends React.Component<PropTypes, StateType> {
     var { buttonGradient } = this.props;
     const { pressed } = this.state;
 
+    this.calculateLayout();
+
     if (pressed) {
       buttonGradient = highLightGradient;
     }
@@ -118,10 +116,12 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       ...this._container_layout,
       ...style,
       backgroundColor,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
     var gradientStyle = {
       ...this._button_layout,
       background: 'linear-gradient(to bottom left, '+buttonGradient[0]+', '+buttonGradient[1]+')',
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
     var imgStyle = {
       ...this._button_layout,

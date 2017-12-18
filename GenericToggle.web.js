@@ -93,12 +93,6 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
   /* reference to container object used to obtain component position */
   _container_ref: Object;
 
-  componentWillMount() {
-    this.calculateLayout();
-    this.calculateAnimationPosition(true);
-    this.createValues();
-  }
-
   onMouseDown(e: Object) {
     const { selected, actions } = this.props;
 
@@ -258,6 +252,7 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       height: layout.height,
       width: layout.width,
       borderRadius: layout.height / 2,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     this._selected_layout = {
@@ -301,6 +296,10 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       orientation } = this.props;
     var { selectedGradient } = this.props;
     const { touch } = this.state;
+
+    this.calculateLayout();
+    this.calculateAnimationPosition(true);
+    this.createValues();
 
     /* calculate animation position of toggle selector */
     this.calculateAnimationPosition();
@@ -347,7 +346,8 @@ const styles = {
   container: {
     display: 'flex',
     position: 'relative',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
   },
   icon_container: {
     display: 'flex',
