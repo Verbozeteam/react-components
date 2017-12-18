@@ -63,12 +63,16 @@ class GenericButton extends React.Component<PropTypes, StateType> {
     const { layout, buttonMargin, borderRadius } = this.props;
 
     this._container_layout = {
+      position: 'relative',
+      display: 'flex',
       height: layout.height,
       width: layout.width,
       borderRadius: (layout.height / 2) * borderRadius
     };
 
     this._button_layout = {
+      position: 'relative',
+      display: 'flex',
       height: layout.height - buttonMargin * 2,
       width: layout.width - buttonMargin * 2,
       top: buttonMargin,
@@ -111,21 +115,35 @@ class GenericButton extends React.Component<PropTypes, StateType> {
     }
 
     var containerStyle = {
-        ...this._container_layout,
-        ...style,
-        backgroundColor,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '50% 50%',
-        backgroundPosition: 'center',
+      ...this._container_layout,
+      ...style,
+      backgroundColor,
+    };
+    var gradientStyle = {
+      ...this._button_layout,
+      background: 'linear-gradient(to bottom left, '+buttonGradient[0]+', '+buttonGradient[1]+')',
+    };
+    var imgStyle = {
+      ...this._button_layout,
+      position: 'unset',
+      width: '100%',
+      height: '100%',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: '50% 50%',
+      backgroundPosition: 'center',
     };
 
     if (icon)
-      containerStyle.backgroundImage = 'url(' + icon + ')';
+      imgStyle.backgroundImage = 'url(' + icon + ')';
 
     return (
       <div style={containerStyle}
         onMouseDown={this._onTouchStart.bind(this)}
         onMouseUp={this._onTouchEnd.bind(this)}>
+        <div style={gradientStyle}>
+          <div style={imgStyle}>
+          </div>
+        </div>
       </div>
     )
   }

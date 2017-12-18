@@ -173,7 +173,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: layout.width / 2
+      borderRadius: 50000, //layout.width / 2
     };
 
     /* calculate icon layout */
@@ -185,8 +185,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._icon_container_layout = {
       height: layout.height,
       width: layout.height * 3 / 2,
-      borderTopLeftRadius: layout.height / 2,
-      borderBottomLeftRadius: layout.height / 2
+      borderTopLeftRadius: 50000, //layout.height / 2,
+      borderBottomLeftRadius: 50000, //layout.height / 2
     };
 
     this._icon_layout = {
