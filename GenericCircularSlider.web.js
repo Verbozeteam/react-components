@@ -255,7 +255,6 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       height: knobDiameter,
       width: knobDiameter,
       borderRadius: knobDiameter / 2,
-      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
   }
 
