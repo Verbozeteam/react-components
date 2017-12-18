@@ -326,7 +326,7 @@ const styles = {
     width: '100%',
     bottom: 0,
     overflow: 'hidden',
-    backgroundColor: 'red',
+    transition: 'left 100ms, top 100ms, right 100ms, bottom 100ms, width 100ms, height 100ms',
   },
   value_container: {
     display: 'flex',
