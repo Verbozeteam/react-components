@@ -5,6 +5,8 @@ import * as React from 'react';
 type PropTypes = {
   icon?: number, /* this must be result of require(<image>) */
   action?: () => null,
+  pressIn?: () => null,
+  pressOut?: () => null,
   disabled?: boolean,
 
 
@@ -32,6 +34,8 @@ class GenericButton extends React.Component<PropTypes, StateType> {
 
   static defaultProps = {
     action: () => null,
+    pressIn: () => null,
+    pressOut: () => null,
     disabled: false,
 
     layout: {
@@ -78,9 +82,11 @@ class GenericButton extends React.Component<PropTypes, StateType> {
   }
 
   _onTouchStart() {
-    const { disabled, action } = this.props;
+    const { disabled, action, pressIn } = this.props;
 
     if (!disabled) {
+      if (pressIn)
+        pressIn();
       if (action)
         action();
 
@@ -91,6 +97,11 @@ class GenericButton extends React.Component<PropTypes, StateType> {
   }
 
   _onTouchEnd() {
+    const { disabled, pressOut } = this.props;
+    if (!disabled) {
+      if (pressOut)
+        pressOut();
+    }
     this.setState({
       pressed: false
     });

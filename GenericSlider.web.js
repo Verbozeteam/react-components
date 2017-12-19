@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as React from 'react';
+import ReactDOM from 'react-dom';
 
 type LayoutType = {
   width: number,
@@ -14,6 +15,8 @@ type StyleType = Object;
 type PropTypes = {
   /* provide maximum and minimum inclusive value range and round function */
   value?: number,
+  noProgress?: boolean, // makes the slider only render a circle at the value
+  diffMode?: boolean, // when true, values change upon moving touches not clicking
   maximum?: number,
   minimum?: number,
   round?: (value: number) => number,
@@ -53,6 +56,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   static defaultProps = {
     orientation: 'horizontal',
     value: 50,
+    noProgress: false,
+    diffMode: true,
     maximum: 100,
     minimum: 0,
     round: (value: number) => Math.round(value),
@@ -89,7 +94,28 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   _icon_layout: LayoutType;
 
   onMouseDown(evt: Object) {
-    const { value, onStart } = this.props;
+    const { diffMode, layout, noProgress, orientation, maximum, minimum, round, onStart } = this.props;
+    var { value } = this.props;
+
+    if (!diffMode) {
+      var bounds = ReactDOM
+        .findDOMNode(this._container_ref)
+        .getBoundingClientRect();
+      var x = evt.clientX - bounds.left;
+      var y = evt.clientY - bounds.top;
+
+      console.log(y, layout.height);
+
+      var denominator = this._ratio;
+      // if (noProgress)
+      //   denominator -= (Math.min(this._slider_mask.height, this._slider_mask.width) / (maximum-minimum)) / 2;
+      if (orientation === 'horizontal')
+        value = (minimum + (x/layout.width)*(maximum-minimum)) / denominator;
+      else
+        value = (minimum + ((layout.height-y)/layout.height)*(maximum-minimum)) / denominator;
+      console.log(value);
+      value = Math.min(Math.max(round(value), minimum), maximum);
+    }
 
     this.setState({
       touch: true,
@@ -153,7 +179,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   }
 
   calculateLayout() {
-    const { orientation, sliderMargin, icon } = this.props;
+    const { orientation, noProgress, sliderMargin, icon } = this.props;
     var { layout } = this.props;
 
     /* layout has not been passed through props, fallback to default */
@@ -217,10 +243,16 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
         borderTopLeftRadius: this._slider_mask.borderRadius,
       };
     }
+
+    if (noProgress)
+      this._slider_layout.borderRadius = this._slider_mask.borderRadius;
   }
 
   calculateSliderRatio() {
-    const { orientation, maximum, minimum, round, sliderMargin } = this.props;
+    const { orientation, noProgress, maximum, minimum, round } = this.props;
+    var { sliderMargin } = this.props;
+    if (noProgress)
+      sliderMargin += Math.min(this._slider_mask.height, this._slider_mask.width) / 2;
 
     if (orientation === 'horizontal') {
       this._ratio = (this._container_layout.width - sliderMargin * 2) /
@@ -233,9 +265,9 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   }
 
   render() {
-    const { orientation, minimum, round, fontColor, highlightGradient,
+    const { orientation, minimum, maximum, round, fontColor, highlightGradient,
       backgroundColor, showValue, icon, iconBackgroundColor } = this.props;
-    var { value, sliderGradient } = this.props;
+    var { value, noProgress, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
 
     /* recalculate layout and ratio */
@@ -250,24 +282,32 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
 
     /* calculate the size of slider */
     const slider_size: LayoutType = {};
-    if (orientation === 'horizontal') {
-      const width = (value - minimum) * this._ratio;
-      if (width < this._slider_mask.height) {
-        slider_size.width = this._slider_mask.height;
-        slider_size.left = width - this._slider_mask.height;
+    if (!noProgress) {
+      if (orientation === 'horizontal') {
+        const width = (value - minimum) * this._ratio;
+        if (width < this._slider_mask.height) {
+          slider_size.width = this._slider_mask.height;
+          slider_size.left = width - this._slider_mask.height;
+        } else {
+          slider_size.width = width;
+        }
       } else {
-        slider_size.width = width;
+        const height = (value - minimum) * this._ratio;
+        if (height < this._slider_mask.width) {
+          slider_size.height = this._slider_mask.width;
+          slider_size.bottom = height - this._slider_mask.width;
+        } else {
+          slider_size.height = height;
+        }
       }
-    }
-
-    else {
-      const height = (value - minimum) * this._ratio;
-      if (height < this._slider_mask.width) {
-        slider_size.height = this._slider_mask.width;
-        slider_size.bottom = height - this._slider_mask.width;
-      } else {
-        slider_size.height = height;
-      }
+    } else {
+      // the slider is only a ball
+      slider_size.width = Math.min(this._slider_mask.height, this._slider_mask.width);
+      slider_size.height = slider_size.width;
+      if (orientation === 'horizontal')
+        slider_size.left = (maximum-(value - minimum)) * this._ratio;
+      else
+        slider_size.top = (maximum-(value - minimum)) * this._ratio;
     }
 
     var value_text = null;
@@ -284,6 +324,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
         onMouseDown={this.onMouseDown.bind(this)}
         onMouseMove={this.onMouseMove.bind(this)}
         onMouseUp={this.onMouseUp.bind(this)}
+          ref={c => this._container_ref = c}
         style={styles.container}>
         {(icon) ? <div style={{...this._icon_container_layout,
           ...styles.icon_container, ...{backgroundColor: iconBackgroundColor}}}>
