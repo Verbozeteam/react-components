@@ -3,6 +3,37 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 
+const EventListenerMode = {capture: true};
+var global_lsiteners = {};
+
+function preventGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'none';
+}
+
+function restoreGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'auto';
+}
+
+function mousemoveListener (e) {
+  e.stopPropagation ();
+  // do whatever is needed while the user is moving the cursor around
+}
+
+function mouseupListener (e) {
+  document.removeEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.removeEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.stopPropagation ();
+}
+
+function captureMouseEvents (e, onmove, onup) {
+  global_lsiteners.up = e => {mouseupListener(e); onup(e)};
+  global_lsiteners.move = e => {mousemoveListener(e); onmove(e)};
+  document.addEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.addEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.preventDefault ();
+  e.stopPropagation ();
+}
+
 type LayoutType = {
   width: number,
   height: number,
@@ -97,10 +128,11 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     const { diffMode, layout, noProgress, orientation, maximum, minimum, round, onStart } = this.props;
     var { value } = this.props;
 
+    var element = ReactDOM.findDOMNode(this._container_ref);
+    captureMouseEvents(evt, this.onMouseMove.bind(this), this.onMouseUp.bind(this));
+
     if (!diffMode) {
-      var bounds = ReactDOM
-        .findDOMNode(this._container_ref)
-        .getBoundingClientRect();
+      var bounds = element.getBoundingClientRect();
       var x = evt.clientX - bounds.left;
       var y = evt.clientY - bounds.top;
 
@@ -322,8 +354,6 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     return (
       <div
         onMouseDown={this.onMouseDown.bind(this)}
-        onMouseMove={this.onMouseMove.bind(this)}
-        onMouseUp={this.onMouseUp.bind(this)}
           ref={c => this._container_ref = c}
         style={styles.container}>
         {(icon) ? <div style={{...this._icon_container_layout,

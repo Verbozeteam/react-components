@@ -3,6 +3,37 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 
+const EventListenerMode = {capture: true};
+var global_lsiteners = {};
+
+function preventGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'none';
+}
+
+function restoreGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'auto';
+}
+
+function mousemoveListener (e) {
+  e.stopPropagation ();
+  // do whatever is needed while the user is moving the cursor around
+}
+
+function mouseupListener (e) {
+  document.removeEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.removeEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.stopPropagation ();
+}
+
+function captureMouseEvents (e, onmove, onup) {
+  global_lsiteners.up = e => {mouseupListener(e); onup(e)};
+  global_lsiteners.move = e => {mousemoveListener(e); onmove(e)};
+  document.addEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.addEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.preventDefault ();
+  e.stopPropagation ();
+}
+
 type LayoutType = {
   width: number,
   height: number,
@@ -95,6 +126,8 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
   onMouseDown(e: Object) {
     const { selected, actions } = this.props;
+
+    captureMouseEvents(e, this.onMouseMove.bind(this), this.onMouseUp.bind(this));
 
     /* set to false whenever touches begin */
     this._has_sent = false;

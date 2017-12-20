@@ -5,6 +5,37 @@ import ReactDOM from 'react-dom';
 
 import type { LayoutType, StyleType } from './flowtypes';
 
+const EventListenerMode = {capture: true};
+var global_lsiteners = {};
+
+function preventGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'none';
+}
+
+function restoreGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'auto';
+}
+
+function mousemoveListener (e) {
+  e.stopPropagation ();
+  // do whatever is needed while the user is moving the cursor around
+}
+
+function mouseupListener (e) {
+  document.removeEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.removeEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.stopPropagation ();
+}
+
+function captureMouseEvents (e, onmove, onup) {
+  global_lsiteners.up = e => {mouseupListener(e); onup(e)};
+  global_lsiteners.move = e => {mousemoveListener(e); onmove(e)};
+  document.addEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.addEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.preventDefault ();
+  e.stopPropagation ();
+}
+
 type PropTypes = {
   disabled?: boolean,
 
@@ -92,6 +123,8 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
   onMouseDown(evt: Object) {
     const { onStart } = this.props;
+
+    captureMouseEvents(evt, this.onMouseMove.bind(this), this.onMouseUp.bind(this));
 
     /* get position of element on screen for touch offset calculation */
     var bounds = ReactDOM
@@ -321,8 +354,6 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     if (!disabled) {
       mouseEvents = {
         onMouseDown: this.onMouseDown.bind(this),
-        onMouseMove: this.onMouseMove.bind(this),
-        onMouseUp: this.onMouseUp.bind(this),
       }
     } else {
       knobGradient = knobDisabledGradient;
