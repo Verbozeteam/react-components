@@ -57,11 +57,11 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     onRelease: () => null,
     showValue: false,
     fontColor: '#FFFFFF',
-    sliderGradient: ['#36DBFD', '#178BFB'],
-    highlightGradient: ['#41FFFF', '#1CA7FF'],
+    sliderGradient: ['#2285d1', '#152747'],
+    highlightGradient: ['#32a5e2', '#253757'],
     backgroundColor: '#181B31',
     iconBackgroundColor: '#0C0F26',
-    sliderMargin: 5,
+    sliderMargin: 2,
     nightMode: true,
   };
 
@@ -175,7 +175,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: 50000, //layout.width / 2
+      borderRadius: 5, //layout.width / 2
     };
 
     /* calculate icon layout */
@@ -187,8 +187,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._icon_container_layout = {
       height: layout.height,
       width: layout.height * 3 / 2,
-      borderTopLeftRadius: 50000, //layout.height / 2,
-      borderBottomLeftRadius: 50000, //layout.height / 2
+      borderTopLeftRadius: 5, //layout.height / 2,
+      borderBottomLeftRadius: 5, //layout.height / 2
     };
 
     this._icon_layout = {
@@ -203,7 +203,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       width: this._container_layout.width - sliderMargin * 2,
       top: sliderMargin,
       left: sliderMargin,
-      borderRadius: (this._container_layout.width - sliderMargin * 2) / 2
+      borderRadius: 5,//(this._container_layout.width - sliderMargin * 2) / 2
     };
 
     /* calculate the border radii of the slider itself depending on
