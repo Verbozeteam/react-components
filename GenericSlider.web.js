@@ -99,11 +99,11 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     onRelease: () => null,
     showValue: false,
     fontColor: '#FFFFFF',
-    sliderGradient: ['#36DBFD', '#178BFB'],
-    highlightGradient: ['#41FFFF', '#1CA7FF'],
+    sliderGradient: ['#2285d1', '#152747'],
+    highlightGradient: ['#32a5e2', '#253757'],
     backgroundColor: '#181B31',
     iconBackgroundColor: '#0C0F26',
-    sliderMargin: 5,
+    sliderMargin: 2,
     nightMode: true,
   };
 
@@ -414,8 +414,7 @@ const styles = {
   value_text: {
     position: 'relative',
     display: 'flex',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0)'
   }

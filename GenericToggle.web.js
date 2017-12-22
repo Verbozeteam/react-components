@@ -82,11 +82,11 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
     sameSameValue: false,
     orientation: 'horizontal',
     fontColor: '#FFFFFF',
-    selectedGradient: ['#36DBFD', '#178BFB'],
-    highlightGradient: ['#41FFFF', '#1CA7FF'],
+    selectedGradient: ['#2285d1', '#152747'],
+    highlightGradient: ['#32a5e2', '#253757'],
     backgroundColor: '#181B31',
     iconBackgroundColor: '#0C0F26',
-    selectedMargin: 5,
+    selectedMargin: 2,
     nightMode: true,
   };
 
@@ -411,8 +411,7 @@ const styles = {
   value_text: {
     display: 'flex',
     position: 'relative',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
     textAlign: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0)'
   }

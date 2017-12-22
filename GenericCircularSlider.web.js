@@ -90,14 +90,14 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     onRelease: () => null,
     arc: 250,
     diameter: 300,
-    knobGradient: ['#36DBFD', '#178BFB'],
+    knobGradient: ['#2285d1', '#152747'],
+    highlightGradient: ['#32a5e2', '#253757'],
     knobDisabledGradient: ['#AFAFAF', '#8A8A8A'],
-    highlightGradient: ['#41FFFF', '#1CA7FF'],
     backgroundGradient: ['#181B31', '#181B31'],
     backgroundStroke: '#181B31',
     knobDiameter: 50,
     arcWidth: 30,
-    arcMargin: 5,
+    arcMargin: 2,
   };
 
   state = {
@@ -374,7 +374,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
               strokeLinecap={'round'} fill={'none'} />
         </svg>
 
-        <div style={{...styles.knob, ...this._knob_layout, ...knob_position, ...{background: 'linear-gradient(to bottom left, '+highlightGradient[0]+', '+highlightGradient[1]+')'}}}>
+        <div style={{...styles.knob, ...this._knob_layout, ...knob_position, ...{background: 'linear-gradient(to bottom left, '+knobGradient[0]+', '+knobGradient[1]+')'}}}>
         </div>
       </div>
     );

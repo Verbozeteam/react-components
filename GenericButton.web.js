@@ -43,11 +43,11 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       width: 80,
     },
     style: {},
-    buttonGradient: ['#36DBFD', '#178BFB'],
+    buttonGradient: ['#2285d1', '#152747'],
     backgroundColor: '#181B31',
-    highLightGradient: ['#41FFFF', '#1CA7FF'],
+    highLightGradient: ['#32a5e2', '#253757'],
     disabledGradient: ['#AFAFAF', '#8A8A8A'],
-    buttonMargin: 5,
+    buttonMargin: 2,
     borderRadius: 1,
   };
 
