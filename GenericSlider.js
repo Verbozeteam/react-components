@@ -13,6 +13,7 @@ type PropTypes = {
   maximum?: number,
   minimum?: number,
   round?: (value: number) => number,
+  textGenerator?: (value: number) => string,
   onStart?: () => null,
   /* onMove doesn't necessarily need to update value passed through props -
      slider live updates on it's own */
@@ -49,7 +50,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     value: 50,
     maximum: 100,
     minimum: 0,
-    round: (value) => Math.round(value),
+    round: (value: number) => Math.round(value),
+    textGenerator: (value: number) => value,
     onStart: () => null,
     onMove: () => null,
     onRelease: () => null,
@@ -234,7 +236,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   }
 
   render() {
-    const { orientation, minimum, round, fontColor, highlightGradient,
+    const { orientation, minimum, round, textGenerator, fontColor, highlightGradient,
       backgroundColor, showValue, icon, iconBackgroundColor } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
@@ -275,7 +277,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     if (showValue) {
       value_text = <View style={styles.value_container}>
         <Text style={[styles.value_text, {color: fontColor}]}>
-          {round(value)}
+          {textGenerator(round(value))}
         </Text>
       </View>
     }
