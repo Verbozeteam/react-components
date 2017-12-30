@@ -284,13 +284,13 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
       display: 'flex',
       height: layout.height,
       width: layout.width,
-      borderRadius: layout.height / 2,
+      borderRadius: 2,//layout.height / 2,
       transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     this._selected_layout = {
       position: 'absolute',
-      borderRadius: (layout.height - selectedMargin * 2) / 2,
+      borderRadius: 2,//(layout.height - selectedMargin * 2) / 2,
     };
 
     if (orientation === 'horizontal') {
@@ -307,19 +307,19 @@ class GenericToggle extends React.Component<PropTypes, StateType> {
 
     /* calculate icon layout */
     if (icon) {
-      this._container_layout.marginLeft = layout.height / 2 * -1;
+      //this._container_layout.marginLeft = layout.height / 2 * -1;
 
       this._icon_container_layout = {
         height: layout.height,
         width: layout.height * 3 / 2,
-        borderTopLeftRadius: layout.height / 2,
-        borderBottomLeftRadius: layout.height / 2
+        borderTopLeftRadius: 2,//layout.height / 2,
+        borderBottomLeftRadius: 2,//layout.height / 2
       };
 
       this._icon_layout = {
         height: layout.height / 2,
         width: layout.height / 2,
-        marginRight: layout.height / 2,
+        marginRight: 2,//layout.height / 2,
       };
     }
   }

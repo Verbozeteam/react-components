@@ -67,7 +67,7 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       display: 'flex',
       height: layout.height,
       width: layout.width,
-      borderRadius: (layout.height / 2) * borderRadius
+      borderRadius: 2,//(layout.height / 2) * borderRadius
     };
 
     this._button_layout = {
@@ -77,7 +77,7 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       width: layout.width - buttonMargin * 2,
       top: buttonMargin,
       left: buttonMargin,
-      borderRadius: (layout.height - (buttonMargin * 2)) / 2 * borderRadius
+      borderRadius: 2,//(layout.height - (buttonMargin * 2)) / 2 * borderRadius
     };
   }
 
