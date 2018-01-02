@@ -67,7 +67,7 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       display: 'flex',
       height: layout.height,
       width: layout.width,
-      borderRadius: (layout.height / 2) * borderRadius
+      borderRadius: 2,//(layout.height / 2) * borderRadius
     };
 
     this._button_layout = {
@@ -77,7 +77,7 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       width: layout.width - buttonMargin * 2,
       top: buttonMargin,
       left: buttonMargin,
-      borderRadius: (layout.height - (buttonMargin * 2)) / 2 * borderRadius
+      borderRadius: 2,//(layout.height - (buttonMargin * 2)) / 2 * borderRadius
     };
   }
 
@@ -98,13 +98,15 @@ class GenericButton extends React.Component<PropTypes, StateType> {
 
   _onTouchEnd() {
     const { disabled, pressOut } = this.props;
-    if (!disabled) {
-      if (pressOut)
-        pressOut();
+    if (this.state.pressed) {
+      if (!disabled) {
+        if (pressOut)
+          pressOut();
+      }
+      this.setState({
+        pressed: false
+      });
     }
-    this.setState({
-      pressed: false
-    });
   }
 
   render() {
@@ -150,7 +152,8 @@ class GenericButton extends React.Component<PropTypes, StateType> {
     return (
       <div style={containerStyle}
         onMouseDown={this._onTouchStart.bind(this)}
-        onMouseUp={this._onTouchEnd.bind(this)}>
+        onMouseUp={this._onTouchEnd.bind(this)}
+        onMouseOut={this._onTouchEnd.bind(this)}>
         <div style={gradientStyle}>
           <div style={imgStyle}>
           </div>

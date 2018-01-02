@@ -230,7 +230,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: 50000, //layout.width / 2
+      borderRadius: 2, //layout.width / 2
       transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
@@ -243,8 +243,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._icon_container_layout = {
       height: layout.height,
       width: layout.height * 3 / 2,
-      borderTopLeftRadius: 50000, //layout.height / 2,
-      borderBottomLeftRadius: 50000, //layout.height / 2
+      borderTopLeftRadius: 2, //layout.height / 2,
+      borderBottomLeftRadius: 2, //layout.height / 2
       transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
@@ -260,7 +260,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       width: this._container_layout.width - sliderMargin * 2,
       top: sliderMargin,
       left: sliderMargin,
-      borderRadius: 50000, //(this._container_layout.width - sliderMargin * 2) / 2
+      borderRadius: 2, //(this._container_layout.width - sliderMargin * 2) / 2
     };
 
     /* calculate the border radii of the slider itself depending on
