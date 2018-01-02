@@ -129,7 +129,7 @@ class GenericButton extends React.Component<PropTypes, StateType> {
         <LinearGradient colors={buttonGradient}
           start={{x: 1, y: 0}} end={{x: 0, y: 1}}
           style={[styles.button, this._button_layout]}>
-        {(icon) ? <Image source={icon} /> : null}
+        {(icon) ? <Image source={icon} style={styles.image} /> : null}
         </LinearGradient>
       </View>
     )
@@ -140,6 +140,10 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  image: {
+    width: '60%',
+    height: '60%',
   }
 })
 
