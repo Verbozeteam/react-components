@@ -254,7 +254,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     /* calculate the size of slider */
     const slider_size: LayoutType = {};
     if (orientation === 'horizontal') {
-      const width = (value - minimum) * this._ratio;
+      const width = (value - minimum) * this._ratio - 1;
       if (width < this._slider_mask.height) {
         slider_size.width = this._slider_mask.height;
         slider_size.left = width - this._slider_mask.height;
