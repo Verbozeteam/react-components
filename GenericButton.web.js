@@ -1,11 +1,6 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
-
-import LinearGradient from 'react-native-linear-gradient';
-
-import type { LayoutType, StyleType } from './flowtypes';
 
 type PropTypes = {
   icon?: number, /* this must be result of require(<image>) */
@@ -16,8 +11,13 @@ type PropTypes = {
 
 
   /* override styling */
-  layout?: LayoutType,
-  style?: StyleType,
+  layout?: {
+    width: number,
+    height: number,
+    top: number,
+    left: number,
+  },
+  style?: Object,
   buttonGradient?: [string, string],
   backgroundColor?: string,
   highLightGradient?: [string, string],
@@ -56,28 +56,28 @@ class GenericButton extends React.Component<PropTypes, StateType> {
   };
 
   /* calculated layout */
-  _container_layout: LayoutType;
-  _button_layout: LayoutType;
-
-  componentWillMount() {
-    this.calculateLayout();
-  }
+  _container_layout: Object;
+  _button_layout: Object;
 
   calculateLayout() {
     const { layout, buttonMargin, borderRadius } = this.props;
 
     this._container_layout = {
+      position: 'relative',
+      display: 'flex',
       height: layout.height,
       width: layout.width,
-      borderRadius: (layout.height / 2) * borderRadius
+      borderRadius: 2,//(layout.height / 2) * borderRadius
     };
 
     this._button_layout = {
+      position: 'relative',
+      display: 'flex',
       height: layout.height - buttonMargin * 2,
       width: layout.width - buttonMargin * 2,
       top: buttonMargin,
       left: buttonMargin,
-      borderRadius: (layout.height - (buttonMargin * 2)) / 2 * borderRadius
+      borderRadius: 2,//(layout.height - (buttonMargin * 2)) / 2 * borderRadius
     };
   }
 
@@ -98,21 +98,24 @@ class GenericButton extends React.Component<PropTypes, StateType> {
 
   _onTouchEnd() {
     const { disabled, pressOut } = this.props;
-    if (!disabled) {
-      if (pressOut)
-        pressOut();
+    if (this.state.pressed) {
+      if (!disabled) {
+        if (pressOut)
+          pressOut();
+      }
+      this.setState({
+        pressed: false
+      });
     }
-
-    this.setState({
-      pressed: false
-    });
   }
 
   render() {
     const { layout, backgroundColor, highLightGradient, disabledGradient,
-      style, buttonMargin, disabled, icon, text } = this.props;
+      style, buttonMargin, disabled, icon } = this.props;
     var { buttonGradient } = this.props;
     const { pressed } = this.state;
+
+    this.calculateLayout();
 
     if (pressed) {
       buttonGradient = highLightGradient;
@@ -122,29 +125,49 @@ class GenericButton extends React.Component<PropTypes, StateType> {
       buttonGradient = disabledGradient;
     }
 
+    var containerStyle = {
+      ...this._container_layout,
+      ...style,
+      backgroundColor,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
+    };
+    var gradientStyle = {
+      ...this._button_layout,
+      background: 'linear-gradient(to bottom left, '+buttonGradient[0]+', '+buttonGradient[1]+')',
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
+    };
+    var imgStyle = {
+      ...this._button_layout,
+      position: 'unset',
+      width: '100%',
+      height: '100%',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: '50% 50%',
+      backgroundPosition: 'center',
+    };
+
+    if (icon)
+      imgStyle.backgroundImage = 'url(' + icon + ')';
+
     return (
-      <View style={[this._container_layout, {backgroundColor}, style]}
-        onTouchStart={this._onTouchStart.bind(this)}
-        onTouchEnd={this._onTouchEnd.bind(this)}>
-        <LinearGradient colors={buttonGradient}
-          start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-          style={[styles.button, this._button_layout]}>
-        {(icon) ? <Image source={icon} style={styles.image} /> : null}
-        </LinearGradient>
-      </View>
+      <div style={containerStyle}
+        onMouseDown={this._onTouchStart.bind(this)}
+        onMouseUp={this._onTouchEnd.bind(this)}
+        onMouseOut={this._onTouchEnd.bind(this)}>
+        <div style={gradientStyle}>
+          <div style={imgStyle}>
+          </div>
+        </div>
+      </div>
     )
   }
 }
 
-const styles = StyleSheet.create({
+const styles = {
   button: {
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  image: {
-    width: '60%',
-    height: '60%',
   }
-})
+};
 
 module.exports = GenericButton;

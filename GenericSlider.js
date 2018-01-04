@@ -13,6 +13,7 @@ type PropTypes = {
   maximum?: number,
   minimum?: number,
   round?: (value: number) => number,
+  textGenerator?: (value: number) => string,
   onStart?: () => null,
   /* onMove doesn't necessarily need to update value passed through props -
      slider live updates on it's own */
@@ -49,17 +50,18 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     value: 50,
     maximum: 100,
     minimum: 0,
-    round: (value) => Math.round(value),
+    round: (value: number) => Math.round(value),
+    textGenerator: (value: number) => value,
     onStart: () => null,
     onMove: () => null,
     onRelease: () => null,
     showValue: false,
     fontColor: '#FFFFFF',
-    sliderGradient: ['#36DBFD', '#178BFB'],
-    highlightGradient: ['#41FFFF', '#1CA7FF'],
+    sliderGradient: ['#2285d1', '#152747'],
+    highlightGradient: ['#32a5e2', '#253757'],
     backgroundColor: '#181B31',
     iconBackgroundColor: '#0C0F26',
-    sliderMargin: 5,
+    sliderMargin: 2,
     nightMode: true,
   };
 
@@ -173,7 +175,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._container_layout = {
       height: layout.height,
       width: layout.width,
-      borderRadius: layout.width / 2
+      borderRadius: 5, //layout.width / 2
     };
 
     /* calculate icon layout */
@@ -185,8 +187,8 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     this._icon_container_layout = {
       height: layout.height,
       width: layout.height * 3 / 2,
-      borderTopLeftRadius: layout.height / 2,
-      borderBottomLeftRadius: layout.height / 2
+      borderTopLeftRadius: 5, //layout.height / 2,
+      borderBottomLeftRadius: 5, //layout.height / 2
     };
 
     this._icon_layout = {
@@ -201,7 +203,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
       width: this._container_layout.width - sliderMargin * 2,
       top: sliderMargin,
       left: sliderMargin,
-      borderRadius: (this._container_layout.width - sliderMargin * 2) / 2
+      borderRadius: 5,//(this._container_layout.width - sliderMargin * 2) / 2
     };
 
     /* calculate the border radii of the slider itself depending on
@@ -234,7 +236,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
   }
 
   render() {
-    const { orientation, minimum, round, fontColor, highlightGradient,
+    const { orientation, minimum, round, textGenerator, fontColor, highlightGradient,
       backgroundColor, showValue, icon, iconBackgroundColor } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
@@ -252,7 +254,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     /* calculate the size of slider */
     const slider_size: LayoutType = {};
     if (orientation === 'horizontal') {
-      const width = (value - minimum) * this._ratio;
+      const width = (value - minimum) * this._ratio - 1;
       if (width < this._slider_mask.height) {
         slider_size.width = this._slider_mask.height;
         slider_size.left = width - this._slider_mask.height;
@@ -275,7 +277,7 @@ class GenericSlider extends React.Component<PropTypes, StateType> {
     if (showValue) {
       value_text = <View style={styles.value_container}>
         <Text style={[styles.value_text, {color: fontColor}]}>
-          {round(value)}
+          {textGenerator(round(value))}
         </Text>
       </View>
     }

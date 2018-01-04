@@ -1,13 +1,40 @@
 /* @flow */
 
 import * as React from 'react';
-import { View, Text, StyleSheet, PanResponder } from 'react-native';
-
-import Svg, { Path, Circle, Defs, LinearGradient as SvgLinearGradient, Stop }
-  from 'react-native-svg';
-import LinearGradient from 'react-native-linear-gradient';
+import ReactDOM from 'react-dom';
 
 import type { LayoutType, StyleType } from './flowtypes';
+
+const EventListenerMode = {capture: true};
+var global_lsiteners = {};
+
+function preventGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'none';
+}
+
+function restoreGlobalMouseEvents () {
+  document.body.style['pointer-events'] = 'auto';
+}
+
+function mousemoveListener (e) {
+  e.stopPropagation ();
+  // do whatever is needed while the user is moving the cursor around
+}
+
+function mouseupListener (e) {
+  document.removeEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.removeEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.stopPropagation ();
+}
+
+function captureMouseEvents (e, onmove, onup) {
+  global_lsiteners.up = e => {mouseupListener(e); onup(e)};
+  global_lsiteners.move = e => {mousemoveListener(e); onmove(e)};
+  document.addEventListener ('mouseup',   global_lsiteners.up,   EventListenerMode);
+  document.addEventListener ('mousemove', global_lsiteners.move, EventListenerMode);
+  e.preventDefault ();
+  e.stopPropagation ();
+}
 
 type PropTypes = {
   disabled?: boolean,
@@ -84,9 +111,6 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   _svg_layout: LayoutType | StateType;
   _container_layout: LayoutType;
 
-  /* touch responder */
-  _panResponder: Object;
-
   /* arc path */
   _arc_path: string;
 
@@ -94,76 +118,63 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
   _animated_angle: Object;
   _old_angle: number;
 
-  /* component x-axis and y-axis position relative to screen */
-  _x_pos: number;
-  _y_pos: number;
-
   /* reference to container object used to obtain component position */
   _container_ref: Object;
 
-  componentWillMount() {
-    /* create touch responder */
-    this._panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: (evt, gestureState) => true,
-      onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
-      onMoveShouldSetPanResponder: (evt, gestureState) => true,
-      onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-
-      onPanResponderGrant: this._onPanResponderGrant.bind(this),
-      onPanResponderMove: this._onPanResponderMove.bind(this),
-      onPanResponderRelease: this._onPanResponderRelease.bind(this)
-    });
-
-    this.createArc();
-    this.createSvgAndContainerLayout();
-    this.createKnobLayout();
-  }
-
-  _onPanResponderGrant(evt: Object, gestureState: {x0: number, y0: number}) {
+  onMouseDown(evt: Object) {
     const { onStart } = this.props;
 
+    captureMouseEvents(evt, this.onMouseMove.bind(this), this.onMouseUp.bind(this));
+
     /* get position of element on screen for touch offset calculation */
-    this._measure(() => {
-      const touch_angle = this.calculateAngleFromCoord(gestureState.x0,
-        gestureState.y0);
-      const touch_value = this.calculateValueFromAngle(touch_angle);
-
-      this.setState({
-        touch: true,
-        touch_angle,
-        touch_value
-      });
-
-      /* call provided onStart handler */
-      onStart(touch_value);
-    });
-  }
-
-  _onPanResponderMove(evt: Object, gestureState: {moveX: number,
-    moveY: number}) {
-    const { value, onMove, minimum, maximum } = this.props;
-    const { touch_angle, touch_value } = this.state;
-
-    var new_touch_angle = this.calculateAngleFromCoord(gestureState.moveX,
-      gestureState.moveY);
-    var new_touch_value = this.calculateValueFromAngle(new_touch_angle);
-
-    if (Math.abs(new_touch_value - touch_value) > (maximum - minimum) / 2) {
-      return;
-    }
+    var bounds = ReactDOM
+      .findDOMNode(this._container_ref)
+      .getBoundingClientRect();
+    var x = evt.clientX - bounds.left;
+    var y = evt.clientY - bounds.top;
+    const touch_angle = this.calculateAngleFromCoord(x, y);
+    const touch_value = this.calculateValueFromAngle(touch_angle);
 
     this.setState({
-      touch_angle: new_touch_angle,
-      touch_value: new_touch_value
+      touch: true,
+      touch_angle,
+      touch_value
     });
 
-    /* if value has changed, call provided onMove handler */
-    if (value !== touch_value) {
-      onMove(touch_value);
+    /* call provided onStart handler */
+    onStart(touch_value);
+  }
+
+  onMouseMove(evt: Object) {
+    const { value, onMove, minimum, maximum } = this.props;
+    const { touch_angle, touch_value, touch } = this.state;
+
+    var bounds = ReactDOM
+      .findDOMNode(this._container_ref)
+      .getBoundingClientRect();
+    var x = evt.clientX - bounds.left;
+    var y = evt.clientY - bounds.top;
+    var new_touch_angle = this.calculateAngleFromCoord(x, y);
+    var new_touch_value = this.calculateValueFromAngle(new_touch_angle);
+
+    if (touch) {
+      if (Math.abs(new_touch_value - touch_value) > (maximum - minimum) / 2) {
+        return;
+      }
+
+      this.setState({
+        touch_angle: new_touch_angle,
+        touch_value: new_touch_value
+      });
+
+      /* if value has changed, call provided onMove handler */
+      if (value !== touch_value) {
+        onMove(touch_value);
+      }
     }
   }
 
-  _onPanResponderRelease() {
+  onMouseUp(evt: Object) {
     const { onRelease } = this.props;
     const { touch_value } = this.state;
 
@@ -180,8 +191,8 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
 
     /* normalize touch poitns to circle origin */
     const touch_points = {
-      x: x_touch - diameter / 2 - this._x_pos,
-      y: y_touch - diameter / 2 - this._y_pos
+      x: x_touch - diameter / 2,
+      y: y_touch - diameter / 2,
     };
 
     /* calculate new angle in radians */
@@ -256,11 +267,16 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       width: diameter,
       top: (knobDiameter - arcWidth) / 4 + 1,
       left: (knobDiameter - arcWidth) / 4 + 1,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
     };
 
     this._container_layout = {
+      position: 'relative',
+      display: 'flex',
       height: this._svg_layout.height + this._svg_layout.top * 2,
-      width: this._svg_layout.width + this._svg_layout.left * 2
+      width: this._svg_layout.width + this._svg_layout.left * 2,
+      transition: 'left 300ms, top 300ms, right 300ms, bottom 300ms, width 300ms, height 300ms',
+      overflow: 'none',
     };
   }
 
@@ -271,7 +287,7 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     this._knob_layout = {
       height: knobDiameter,
       width: knobDiameter,
-      borderRadius: knobDiameter / 2
+      borderRadius: knobDiameter / 2,
     };
   }
 
@@ -308,25 +324,8 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     ].join(' ');
   }
 
-  _measure(callback) {
-    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-      this._x_pos = pageX;
-      this._y_pos = pageY;
-
-      if (typeof callback == 'function') {
-        callback();
-      }
-    });
-  }
-
-  calculateAngleAnimation() {
-
-  }
-
   componentDidUpdate(prevProps: PropTypes) {
-
     this._old_angle = prevProps.value;
-    this.calculateAngleAnimation();
   }
 
   render() {
@@ -336,6 +335,9 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
     var { value, knobGradient } = this.props;
     const { touch, touch_angle, touch_value } = this.state;
 
+    this.createArc();
+    this.createSvgAndContainerLayout();
+    this.createKnobLayout();
 
     var knob_position: {left: number, top: number};
     if (touch) {
@@ -348,53 +350,46 @@ class GenericCircularSlider extends React.Component<PropTypes, StateType> {
       knob_position = this.calculateKnobPositionFromAngle(angle);
     }
 
-    var panHandlers = {};
+    var mouseEvents = {};
     if (!disabled) {
-      panHandlers = this._panResponder.panHandlers;
+      mouseEvents = {
+        onMouseDown: this.onMouseDown.bind(this),
+      }
     } else {
       knobGradient = knobDisabledGradient;
     }
 
     return (
-      <View {...panHandlers}
+      <div {...mouseEvents}
         ref={c => this._container_ref = c}
-        onLayout={this._measure.bind(this)}
         style={this._container_layout}>
-        <Svg width={this._svg_layout.width} height={this._svg_layout.height}
-          style={[styles.svg,
-            {top: this._svg_layout.top, left: this._svg_layout.left}]}>
-          <Defs>
-            <SvgLinearGradient id={'gradient'}
-              x1={0} y1={diameter / 2} x2={diameter} y2={diameter / 2}>
-                <Stop offset={'0'} stopColor={backgroundGradient[0]} />
-                <Stop offset={'1'} stopColor={backgroundGradient[1]} />
-            </SvgLinearGradient>
-          </Defs>
-
-          <Path d={this._arc_path}
+        <svg width={this._svg_layout.width} height={this._svg_layout.height}
+          style={{...styles.svg,
+            ...{top: this._svg_layout.top, left: this._svg_layout.left}}}>
+          <path d={this._arc_path}
             stroke={backgroundStroke} strokeWidth={arcWidth + arcMargin * 2}
               strokeLinecap={'round'} fill={'none'} />
-          <Path d={this._arc_path}
+          <path d={this._arc_path}
             stroke={'url(#gradient)'} strokeWidth={arcWidth}
               strokeLinecap={'round'} fill={'none'} />
-        </Svg>
+        </svg>
 
-        <LinearGradient colors={knobGradient}
-          start={{x: 1, y: 0}} end={{x: 0, y: 1}}
-          style={[styles.knob, this._knob_layout, knob_position]}>
-        </LinearGradient>
-      </View>
+        <div style={{...styles.knob, ...this._knob_layout, ...knob_position, ...{background: 'linear-gradient(to bottom left, '+knobGradient[0]+', '+knobGradient[1]+')'}}}>
+        </div>
+      </div>
     );
   }
 }
 
-const styles = StyleSheet.create({
+const styles = {
   svg: {
-    position: 'absolute'
+    position: 'absolute',
+    display: 'flex',
   },
   knob: {
     position: 'absolute',
+    display: 'flex',
   }
-});
+};
 
 module.exports = GenericCircularSlider;
