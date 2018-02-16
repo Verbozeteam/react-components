@@ -350,9 +350,9 @@ class GenericCircularSliderSimple extends React.Component<PropTypes, StateType> 
     var knobAngle = touch ? touch_angle : angle;
     const start_angle = (arc / 2 - 90) * Math.PI / 180;
     const end_angle = (arc / 2 * -1 - 90) * Math.PI / 180;
-    if (knobAngle > start_angle)
+    if (knobAngle - 0.01 > start_angle)
         knobAngle -= Math.PI * 2;
-    if (knobAngle < end_angle)
+    if (knobAngle + 0.01 < end_angle)
       knobAngle += Math.PI * 2;
     var arcLeft = this.createArc(start_angle, knobAngle);
     var arcRight = this.createArc(knobAngle, end_angle);
