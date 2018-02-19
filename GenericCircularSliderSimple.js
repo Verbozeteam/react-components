@@ -214,11 +214,13 @@ class GenericCircularSliderSimple extends React.Component<PropTypes, StateType> 
 
     const ratio = arc / (maximum - minimum);
     const angle_from_start = angle_degrees + arc / 2;
-    return round(minimum + angle_from_start / ratio);
+    return maximum - (round(minimum + angle_from_start / ratio)-minimum);
   }
 
   calculateAngleFromValue(value: number): number {
     const { maximum, minimum, arc } = this.props;
+
+    value = maximum - (value - minimum);
 
     /* calculate the angle in degrees, where top of circle is 0 */
     const angle_degrees = arc / (maximum - minimum) * (value - minimum) -
