@@ -1,151 +1,216 @@
 /* @flow */
 
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import { View, Text, StyleSheet, PanResponder } from 'react-native';
+import React, { Component } from 'react';
+import { View, StyleSheet, PanResponder } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
 
 type PropsType = {
-    width: number,
-    height: number,
-    value: number,
-    enabled?: boolean,
-    onChange?: number => any,
+  width: number,
+  height: number,
+  margin?: number,
+
+  value: number,
+  enabled?: boolean,
+  onChange?: (number) => null,
+  round?: (number) => number,
+
+  numDashes?: number,
+  minTemp?: number,
+  maxTemp?: number,
+  coldColor?: string,
+  warmColor?: string,
+  disabledColor?: string,
+  knobColor?: string,
 };
 
 type StateType = {
-    dragging: boolean,
-    lastValue: number,
-    currentValue: number,
+  dragging: boolean,
+  last_value: number,
+  current_value: number
 };
 
-export default class MagicThermostatSlider extends React.Component<PropsType, StateType> {
-    static defaultProps = {
-        enabled: true,
-        onChange: (n: number) => null,
+export default class MagicThermostatSlider extends Component<PropsType, StateType> {
+
+  static defaultProps = {
+    margin: 10,
+
+    enabled: true,
+    onChange: (n: number) => null,
+    round: (n: number) => Math.round(n * 2) / 2,
+
+    numDashes: 35,
+    minTemp: 16,
+    maxTemp: 32,
+    coldColor: '#2F75B8',
+    warmColor: '#BA3737',
+    disabledColor: '#707070',
+    knobColor: '#D8D8D8'
+  };
+
+  state = {
+    dragging: false,
+    last_value: 0,
+    current_value: 0
+  };
+
+  /* touch responder */
+  _panResponder: ?Object;
+
+  /* component x-axis position relative to screen */
+  _x_pos: ?number;
+
+  componentWillMount() {
+    /* create touch responder */
+    this._panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
+      onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => true,
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+
+      onPanResponderGrant: this.onPanResponderGrant.bind(this),
+      onPanResponderMove: this.onPanResponderMove.bind(this),
+      onPanResponderRelease: this.onPanResponderRelease.bind(this)
+    });
+  }
+
+  onPanResponderGrant(evt: Object, gestureState: Object) {
+    this.onKnobMove(gestureState.x0);
+  }
+
+  onPanResponderMove(evt: Object, gestureState: Object) {
+    this.onKnobMove(gestureState.moveX);
+  }
+
+  onPanResponderRelease(evt: Object, gestureState: Object) {
+    this.setState({
+      dragging: false
+    });
+  }
+
+  onKnobMove(x: number) {
+    const { margin, width, minTemp, maxTemp, round, onChange } = this.props;
+    const { last_value, current_value } = this.state;
+
+    var new_value = (x - this._x_pos - margin / 2) / (width - margin) *
+      minTemp + (maxTemp - minTemp);
+    new_value = round(Math.min(Math.max(new_value, minTemp), maxTemp));
+
+    if (new_value != last_value && onChange) {
+      onChange(new_value);
+    }
+
+    this.setState({
+      dragging: true,
+      last_value: current_value,
+      current_value: new_value
+    });
+  }
+
+  parseColor(color: string): {r: number, g: number, b: number} {
+    return {
+      r: parseInt(color.slice(1, 3), 16),
+      g: parseInt(color.slice(3, 5), 16),
+      b: parseInt(color.slice(5), 16)
     };
+  }
 
-    state: StateType = {
-        dragging: false,
-        currentValue: 0,
-        lastValue: 0,
-    };
+  renderLines() {
+    const { width, height, numDashes, disabledColor, margin, enabled }
+      = this.props;
+    var { coldColor, warmColor } = this.props;
 
-    _numDashes: number = 35;
-    _minimum: number = 16;
-    _maximum: number = 32;
-    _hotColor: {r: number, g: number, b: number} = {r: 0xBA, g: 0x37, b: 0x37}; // #BA3737
-    _coldColor: {r: number, g: number, b: number} = {r: 43, g: 159, b: 255};
+    const parsedColdColor = this.parseColor(coldColor);
+    const parsedWarmColor = this.parseColor(warmColor);
 
-    /* touch responder */
-    _panResponder: Object;
+    var lines = [];
 
-    /* component x-axis and y-axis position relative to screen */
-    _x_pos: number;
-    _y_pos: number;
+    var bar_width = width - margin;
+    var bar_height = (height - 3) * 0.4;
 
-    /* reference to container object used to obtain component position */
-    _container_ref: Object;
+    for (var i = 0; i < numDashes; i++) {
+      var progress = i / (numDashes - 1);
+      var lerp = (v, c) => (parsedColdColor[c] +
+        (parsedWarmColor[c] - parsedColdColor[c]) * v).toFixed(0);
 
-    componentWillMount() {
-        /* create touch responder */
-        this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
-            onMoveShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+      var color;
+      if (enabled) {
+        color = 'rgb(' + lerp(progress, 'r') + ',' + lerp(progress, 'g') +
+        ',' + lerp(progress, 'b') + ')';
+      } else {
+        color = disabledColor;
+      }
 
-            onPanResponderGrant: this._onPanResponderGrant.bind(this),
-            onPanResponderMove: this._onPanResponderMove.bind(this),
-            onPanResponderRelease: this._onPanResponderRelease.bind(this)
-        });
+      var x = progress * (bar_width - 2) + 1;
+      lines.push(
+        <Line key={'svg-line-' + i}
+          x1={x} y1={0} x2={x} y2={bar_height} stroke={color} strokeWidth={2} />
+      );
     }
 
-    _onPanResponderGrant(evt: Object, gestureState: Object) {
-        this._onPanResponderMove(evt, gestureState);
+    return lines;
+  }
+
+  renderKnob() {
+    const { height, disabledColor, enabled } = this.props;
+    var { knobColor } = this.props;
+
+    if (!enabled) {
+      knobColor = disabledColor;
     }
 
-    _onPanResponderMove(evt: Object, gestureState: Object) {
-        const { lastValue } = this.state;
-        const { onChange, width } = this.props;
+    var knob_width = (height - 3) * 0.8;
+    var knob_height = (height - 3) * 0.6;
 
-        var cur_pos = this._minimum + (this._maximum-this._minimum) * (gestureState.x0 + gestureState.dx - this._x_pos) / width;
-        cur_pos = Math.min(Math.max(cur_pos, this._minimum), this._maximum);
-        var cur_value = parseInt(cur_pos);
+    return (
+      <Svg width={knob_width} height={knob_height}>
+        <Polygon points={'0,0 ' + knob_width + ',0 ' + knob_width / 2 + ',' + knob_height}
+          fill={knobColor}
+          stroke={'#FFFFFF'}
+          stokeWidth={'2'} />
+      </Svg>
+    )
+  }
 
-        if (cur_value !== lastValue && onChange)
-            onChange(cur_value);
+  knobPosition() {
+    const { width, margin, minTemp, maxTemp } = this.props;
+    var { value } = this.props;
+    const { dragging, current_value } = this.state;
 
-        this.setState({
-            dragging: true,
-            lastValue: cur_value,
-            currentValue: cur_pos
-        });
+    if (dragging) {
+      value = current_value;
     }
 
-    _onPanResponderRelease() {
-        this.setState({
-            dragging: false,
-        });
-    }
+    return (width - margin) * (value - minTemp) / (maxTemp - minTemp);
+  }
 
-    _measure(callback) {
-        this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-            this._x_pos = pageX;
-            this._y_pos = pageY;
+  measure(evt: Object) {
+    this._x_pos = evt.nativeEvent.layout.x;
+  }
 
-            if (typeof callback == 'function')
-                callback();
-        });
-    }
+  render() {
+      var { width, height, margin } = this.props;
 
-    render() {
-        var { width, height, value, enabled } = this.props;
-        const { currentValue, dragging } = this.state;
+      var bar_width = width - margin;
+      var bar_height = (height - 3) * 0.4;
 
-        if (dragging)
-            value = currentValue;
+      const knob_style = {
+        marginLeft: this.knobPosition(),
+        marginBottom: 3
+      };
 
-        var margin = 10;
-        var barWidth = width - margin;
-        var curProgress = barWidth * (value-this._minimum) / (this._maximum-this._minimum);
-        var knobY1 = height*(1/3);
-        var knobY2 = height*(1.5/3);
+      return (
+        <View style={{width, height}}
+          onLayout={this.measure.bind(this)}
+          {...this._panResponder.panHandlers}>
+          <View style={knob_style}>
+            {this.renderKnob()}
+          </View>
 
-        var lines = [];
-        for (var i = 0; i < this._numDashes; i++) {
-            var progress = i / (this._numDashes-1);
-            var lerp = (v, c) => (this._coldColor[c]+(this._hotColor[c]-this._coldColor[c])*v).toFixed(0);
-            var color = 'rgb(' + lerp(progress, 'r') + ',' + lerp(progress, 'g') + ',' + lerp(progress, 'b') + ')';
-            if (!enabled)
-                color = '#666666';
-            var x = progress * (barWidth-2) + 1;
-            lines.push(<Line key={"svg-line-"+i} x1={x} y1={0} x2={x} y2={height*(2/3)} stroke={color} strokeWidth={2} />);
-        }
-
-        return (
-            <View style={{width, height}}
-                {...this._panResponder.panHandlers}
-                onLayout={this._measure.bind(this)}
-                ref={c => this._container_ref = c}>
-                <Svg width={barWidth} height={height*(2/3)} style={{marginLeft: margin/2}}>
-                    {lines}
-                </Svg>
-                <View style={{position: 'relative', width, height: height*(1.5/3), marginTop: -height*(0.5/3)}}>
-                    <View style={{...styles.knob, left: curProgress - 5 + margin/2}}>
-                        <Svg width={10} height={height*(2/3)}>
-                            <Polygon points={"5,0 10,"+knobY1+" 5,"+knobY2+" 0,"+knobY1} fill={'#ffffff'} strokeWidth={1} />
-                        </Svg>
-                    </View>
-                </View>
-            </View>
-        );
-    }
-};
-
-const styles = {
-    knob: {
-        position: 'absolute',
-        width: 10,
-    }
-};
+          <Svg width={bar_width} height={bar_width}
+            style={{marginLeft: margin / 2}}>
+            {this.renderLines()}
+          </Svg>
+        </View>
+      );
+  }
+}
