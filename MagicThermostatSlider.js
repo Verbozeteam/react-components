@@ -36,7 +36,7 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
 
     enabled: true,
     onChange: (n: number) => null,
-    round: (n: number) => Math.round(n * 2) / 2,
+    round: (n: number) => (Math.round(n * 2) / 2).toFixed(1),
 
     numDashes: 35,
     minTemp: 16,
