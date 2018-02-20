@@ -82,7 +82,7 @@ export default class MagicButton extends React.Component<PropsType, StateType> {
         };
 
         var style = {
-            borderRadius: 100000,
+            borderRadius: height/2,
             alignItems: 'center',
             justifyContent: 'center',
             width,
