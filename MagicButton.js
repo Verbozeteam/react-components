@@ -133,7 +133,7 @@ export default class MagicButton extends Component<PropsType, StateType> {
     }
 
     else if (icon) {
-      button_style = <Image source={icon} />;
+      button_inner = <Image source={icon} />;
     }
 
     var side_text = null;
