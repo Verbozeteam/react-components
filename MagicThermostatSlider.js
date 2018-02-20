@@ -19,7 +19,7 @@ type StateType = {
     currentValue: number,
 };
 
-export class MagicThermostatSlider extends React.Component<PropsType, StateType> {
+export default class MagicThermostatSlider extends React.Component<PropsType, StateType> {
     static defaultProps = {
         enabled: true,
         onChange: (n: number) => null,

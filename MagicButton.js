@@ -25,7 +25,7 @@ type StateType = {
     hover: boolean,
 };
 
-export class MagicButton extends React.Component<PropsType, StateType> {
+export default class MagicButton extends React.Component<PropsType, StateType> {
     static defaultProps = {
         glowColor: '#ffffff',
         offColor: '#999999',

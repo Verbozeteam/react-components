@@ -22,7 +22,7 @@ type StateType = {
     currentValue: number,
 };
 
-export class MagicSlider extends React.Component<PropsType, StateType> {
+export default class MagicSlider extends React.Component<PropsType, StateType> {
     static defaultProps = {
         glowColor: '#ffffff',
         offColor: '#999999',
