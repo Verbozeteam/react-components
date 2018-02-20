@@ -11,8 +11,8 @@ type PropsType = {
 
   value: number,
   enabled?: boolean,
-  onChange?: (number) => null,
-  round?: (number) => number,
+  onChange?: (n: number) => any,
+  round?: (n: number) => string,
 
   numDashes?: number,
   minTemp?: number,
@@ -36,7 +36,7 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
 
     enabled: true,
     onChange: (n: number) => null,
-    round: (n: number) => (Math.round(n * 2) / 2).toFixed(1),
+    round: (n: number) => n,
 
     numDashes: 35,
     minTemp: 16,
