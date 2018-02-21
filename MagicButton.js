@@ -15,18 +15,19 @@ type PropsType = {
 
   text?: string,
   textColor?: string,
-  textStyle?: Object,
+  textStyle?: Object | number,
 
   onPress?: () => any,
   onPressIn?: () => any,
   onPressOut?: () => any,
 
-  extraStyle?: Object,
+  extraStyle?: Object | number,
 
   sideText?: string,
-  sideTextStyle?: Object,
+  sideTextStyle?: Object | number,
 
   icon?: number,
+  iconStyle?: Object | number,
   showBorder?: boolean
 };
 
@@ -85,7 +86,7 @@ export default class MagicButton extends Component<PropsType, StateType> {
 
   render() {
     const { width, height, glowColor, offColor, isOn, text, textColor, textStyle,
-      onPress, extraStyle, sideText, sideTextStyle, icon,
+      onPress, extraStyle, sideText, sideTextStyle, icon, iconStyle,
       showBorder } = this.props;
     const { hover } = this.state;
 
@@ -118,7 +119,7 @@ export default class MagicButton extends Component<PropsType, StateType> {
         borderColor: offColor
       }};
     }
-    
+
     var button_text_style = {
       fontWeight: '100',
       textAlign: 'center',
@@ -133,7 +134,11 @@ export default class MagicButton extends Component<PropsType, StateType> {
     }
 
     else if (icon) {
-      button_inner = <Image source={icon} style={{width: width / 2, height: height / 2}} />;
+      var icon_style = iconStyle;
+      if (typeof iconStyle == 'undefined') {
+        icon_style = {height: height / 2, width: width / 2};
+      }
+      button_inner = <Image source={icon} style={icon_style} />;
     }
 
     var side_text = null;
