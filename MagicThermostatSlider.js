@@ -88,8 +88,11 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
   }
 
   onKnobMove(x: number) {
-    const { margin, width, minTemp, maxTemp, round, onChange } = this.props;
+    const { margin, width, minTemp, maxTemp, round, onChange, enabled } = this.props;
     const { last_value, current_value } = this.state;
+
+    if (!enabled)
+      return;
 
     var new_value = (x - this._x_pos - margin / 2) / (width - margin) *
       minTemp + (maxTemp - minTemp);
