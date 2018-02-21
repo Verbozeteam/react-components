@@ -118,28 +118,28 @@ export default class MagicButton extends Component<PropsType, StateType> {
         borderColor: offColor
       }};
     }
+    
+    var button_text_style = {
+      fontWeight: '100',
+      textAlign: 'center',
+      fontSize: height / 3,
+      color: textColor,
+      ...textStyle
+    };
 
     var button_inner = null;
     if (text) {
-      var button_text_style = {
-        fontWeight: '100',
-        textAlign: 'center',
-        fontSize: height / 3,
-        color: textColor,
-        ...textStyle
-      };
-
       button_inner = <Text style={button_text_style}>{text}</Text>;
     }
 
     else if (icon) {
-      button_inner = <Image source={icon} />;
+      button_inner = <Image source={icon} style={{width: width / 2, height: height / 2}} />;
     }
 
     var side_text = null;
     if (sideText) {
       side_text = (
-        <Text style={[sideTextStyle, {marginLeft: width / 5}]}>
+        <Text style={[button_text_style, sideTextStyle, {marginLeft: width / 5}]}>
           {sideText}
         </Text>
       );
