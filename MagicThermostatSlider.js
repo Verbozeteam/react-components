@@ -12,7 +12,7 @@ type PropsType = {
   value: number,
   enabled?: boolean,
   onChange?: (n: number) => any,
-  round?: (n: number) => string,
+  round?: (n: number) => number,
 
   numDashes?: number,
   minTemp?: number,

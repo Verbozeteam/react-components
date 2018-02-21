@@ -15,7 +15,7 @@ type PropsType = {
 
   text?: string,
   textColor?: string,
-  textStyle?: string,
+  textStyle?: Object,
 
   onPress?: () => any,
   onPressIn?: () => any,
