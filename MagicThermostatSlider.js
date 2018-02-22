@@ -21,6 +21,9 @@ type PropsType = {
   warmColor?: string,
   disabledColor?: string,
   knobColor?: string,
+
+  scrollStart: () => {},
+  scrollEnd: () => {}
 };
 
 type StateType = {
@@ -44,7 +47,10 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
     coldColor: '#2F75B8',
     warmColor: '#BA3737',
     disabledColor: '#707070',
-    knobColor: '#D8D8D8'
+    knobColor: '#D8D8D8',
+
+    scrollStart: () => {},
+    scrollEnd: () => {},
   };
 
   state = {
@@ -78,6 +84,8 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
   }
 
   onPanResponderGrant(evt: Object, gestureState: Object) {
+    const { scrollStart } = this.props;
+    scrollStart();
     this.measure(() => this.onKnobMove(gestureState.x0));
   }
 
@@ -88,6 +96,9 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
   }
 
   onPanResponderRelease(evt: Object, gestureState: Object) {
+    const { scrollEnd } = this.props;
+    scrollEnd();
+
     this._measured = false;
 
     this.setState({
