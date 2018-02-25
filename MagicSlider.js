@@ -14,6 +14,9 @@ type PropsType = {
     onChange?: number => any,
     disabled?: boolean,
     showKnob?: boolean,
+
+    scrollStart: () => {},
+    scrollEnd: () => {}
 };
 
 type StateType = {
@@ -35,6 +38,9 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
         increment: 1,
         disabled: false,
         showKnob: true,
+
+        scrollStart: () => {},
+        scrollEnd: () => {},
     };
 
     state: StateType = {
@@ -57,7 +63,7 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
 
     /* component x-axis and y-axis position relative to screen */
     _x_pos: number;
-    _y_pos: number;
+    _measured: boolean = false;
 
     /* reference to container object used to obtain component position */
     _container_ref: Object;
@@ -70,21 +76,40 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
             onMoveShouldSetPanResponder: (evt, gestureState) => true,
             onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
 
-            onPanResponderGrant: this._onPanResponderGrant.bind(this),
-            onPanResponderMove: this._onPanResponderMove.bind(this),
-            onPanResponderRelease: this._onPanResponderRelease.bind(this)
+            onPanResponderGrant: this.onPanResponderGrant.bind(this),
+            onPanResponderMove: this.onPanResponderMove.bind(this),
+            onPanResponderRelease: this.onPanResponderRelease.bind(this)
         });
     }
 
-    _onPanResponderGrant(evt: Object, gestureState: Object) {
-        this._onPanResponderMove(evt, gestureState);
+    onPanResponderGrant(evt: Object, gestureState: Object) {
+        const { scrollStart } = this.props;
+        scrollStart();
+        this.measure(() => this.onKnobMove(gestureState.x0));
     }
 
-    _onPanResponderMove(evt: Object, gestureState: Object) {
+    onPanResponderMove(evt: Object, gestureState: Object) {
+        if (this._measured) {
+          this.onKnobMove(gestureState.moveX);
+        }
+    }
+
+    onPanResponderRelease() {
+        const { scrollEnd } = this.props;
+        scrollEnd();
+
+        this._measured = false;
+
+        this.setState({
+            dragging: false,
+        });
+    }
+
+    onKnobMove(x: number) {
         const { lastValue } = this.state;
         const { maxValue, onChange } = this.props;
 
-        var cur_pos = maxValue * (gestureState.x0 + gestureState.dx - this._x_pos - this._sizes.sliderMargin/2) / this._sizes.sliderWidth;
+        var cur_pos = maxValue * (x - this._x_pos - this._sizes.sliderMargin/2) / this._sizes.sliderWidth;
         cur_pos = Math.min(Math.max(cur_pos, 0), maxValue);
         var cur_value = parseInt(cur_pos);
 
@@ -98,20 +123,12 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
         });
     }
 
-    _onPanResponderRelease() {
-        this.setState({
-            dragging: false,
-        });
-    }
-
-    _measure(callback) {
-        this._container_ref.measure((x, y, width, height, pageX, pageY) => {
-            this._x_pos = pageX;
-            this._y_pos = pageY;
-
-            if (typeof callback == 'function')
-                callback();
-        });
+    measure(callback?: () => void = () => {}) {
+      this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+        this._x_pos = pageX;
+        callback();
+        this._measured = true;
+      });
     }
 
     render() {
@@ -149,8 +166,8 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
         return (
             <View
                 {...this._panResponder.panHandlers}
-                onLayout={this._measure.bind(this)}
-                ref={c => this._container_ref = c}
+                ref={(c) => this._container_ref = c}
+                onLayout={() => null}
                 style={[styles.container, {width, height}]}>
                 <View style={{...styles.sliderContainer, width: this._sizes.sliderWidth, height: this._sizes.barHeight, marginLeft: this._sizes.sliderMargin/2, marginRight: this._sizes.sliderMargin/2}}>
                     <View style={{...sliderInnerContainerStyle, width: this._sizes.valueWidth, ...sliderGlow}} />

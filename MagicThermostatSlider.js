@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, { Component } from 'react';
+import * as React from 'react';
 import { View, StyleSheet, PanResponder } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
 
@@ -12,7 +12,7 @@ type PropsType = {
   value: number,
   enabled?: boolean,
   onChange?: (n: number) => any,
-  round?: (n: number) => number,
+  round?: (n: number) => number | string,
 
   numDashes?: number,
   minTemp?: number,
@@ -21,6 +21,9 @@ type PropsType = {
   warmColor?: string,
   disabledColor?: string,
   knobColor?: string,
+
+  scrollStart: () => {},
+  scrollEnd: () => {}
 };
 
 type StateType = {
@@ -29,7 +32,7 @@ type StateType = {
   current_value: number
 };
 
-export default class MagicThermostatSlider extends Component<PropsType, StateType> {
+export default class MagicThermostatSlider extends React.Component<PropsType, StateType> {
 
   static defaultProps = {
     margin: 10,
@@ -44,7 +47,10 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
     coldColor: '#2F75B8',
     warmColor: '#BA3737',
     disabledColor: '#707070',
-    knobColor: '#D8D8D8'
+    knobColor: '#D8D8D8',
+
+    scrollStart: () => {},
+    scrollEnd: () => {},
   };
 
   state = {
@@ -58,6 +64,10 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
 
   /* component x-axis position relative to screen */
   _x_pos: ?number;
+  _measured: boolean = false;
+
+  /* reference to container object used to obtain component position */
+  _container_ref: React.Ref<View>;
 
   componentWillMount() {
     /* create touch responder */
@@ -74,14 +84,23 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
   }
 
   onPanResponderGrant(evt: Object, gestureState: Object) {
-    this.onKnobMove(gestureState.x0);
+    const { scrollStart } = this.props;
+    scrollStart();
+    this.measure(() => this.onKnobMove(gestureState.x0));
   }
 
   onPanResponderMove(evt: Object, gestureState: Object) {
-    this.onKnobMove(gestureState.moveX);
+    if (this._measured) {
+      this.onKnobMove(gestureState.moveX);
+    }
   }
 
   onPanResponderRelease(evt: Object, gestureState: Object) {
+    const { scrollEnd } = this.props;
+    scrollEnd();
+
+    this._measured = false;
+
     this.setState({
       dragging: false
     });
@@ -186,8 +205,12 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
     return (width - margin) * (value - minTemp) / (maxTemp - minTemp);
   }
 
-  measure(evt: Object) {
-    this._x_pos = evt.nativeEvent.layout.x;
+  measure(callback?: Function = () => null) {
+    this._container_ref.measure((x, y, width, height, pageX, pageY) => {
+      this._x_pos = pageX;
+      callback();
+      this._measured = true;
+    });
   }
 
   render() {
@@ -201,9 +224,11 @@ export default class MagicThermostatSlider extends Component<PropsType, StateTyp
         marginBottom: 3
       };
 
+      /* empty onLayout callback, but needed for measure to work on Android */
       return (
         <View style={{width, height}}
-          onLayout={this.measure.bind(this)}
+          ref={(c) => this._container_ref = c}
+          onLayout={() => null}
           {...this._panResponder.panHandlers}>
           <View style={knob_style}>
             {this.renderKnob()}
