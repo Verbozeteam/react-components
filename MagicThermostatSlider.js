@@ -22,8 +22,8 @@ type PropsType = {
   disabledColor?: string,
   knobColor?: string,
 
-  scrollStart: () => {},
-  scrollEnd: () => {}
+  blockParentScroll: () => {},
+  unblockParentScroll: () => {}
 };
 
 type StateType = {
@@ -49,8 +49,8 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
     disabledColor: '#707070',
     knobColor: '#D8D8D8',
 
-    scrollStart: () => {},
-    scrollEnd: () => {},
+    blockParentScroll: () => {},
+    unblockParentScroll: () => {},
   };
 
   state = {
@@ -70,6 +70,8 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
   _container_ref: React.Ref<View>;
 
   componentWillMount() {
+    const { blockParentScroll, unblockParentScroll } = this.props;
+
     /* create touch responder */
     this._panResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -79,13 +81,15 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
 
       onPanResponderGrant: this.onPanResponderGrant.bind(this),
       onPanResponderMove: this.onPanResponderMove.bind(this),
-      onPanResponderRelease: this.onPanResponderRelease.bind(this)
+      onPanResponderRelease: this.onPanResponderRelease.bind(this),
+
+      onPanResponderStart: blockParentScroll,
+      onPanResponderEnd: unblockParentScroll,
+      onPanResponderTerminate: unblockParentScroll
     });
   }
 
   onPanResponderGrant(evt: Object, gestureState: Object) {
-    const { scrollStart } = this.props;
-    scrollStart();
     this.measure(() => this.onKnobMove(gestureState.x0));
   }
 
@@ -96,9 +100,6 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
   }
 
   onPanResponderRelease(evt: Object, gestureState: Object) {
-    const { scrollEnd } = this.props;
-    scrollEnd();
-
     this._measured = false;
 
     this.setState({
