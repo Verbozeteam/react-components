@@ -32,6 +32,7 @@ type PropTypes = {
   backgroundColor?: string,
   iconBackgroundColor?: string,
   sliderMargin?: number,
+  knobColor?: string,
 
   // TODO: for the futrue
   nightMode?: boolean
@@ -63,6 +64,7 @@ class GenericSliderSimple extends React.Component<PropTypes, StateType> {
     iconBackgroundColor: '#00000000',
     sliderMargin: 2,
     nightMode: true,
+    knobColor: '#000000',
   };
 
   state = {
@@ -276,7 +278,7 @@ class GenericSliderSimple extends React.Component<PropTypes, StateType> {
 
   render() {
     const { orientation, minimum, round, textGenerator, fontColor, highlightGradient,
-      backgroundColor, showValue, icon, iconBackgroundColor } = this.props;
+      backgroundColor, showValue, icon, iconBackgroundColor, knobColor } = this.props;
     var { value, sliderGradient } = this.props;
     const { touch, touch_value } = this.state;
 
@@ -328,7 +330,7 @@ class GenericSliderSimple extends React.Component<PropTypes, StateType> {
             height: this._container_layout.height*0.7,
             top: this._container_layout.height*0.15,
             left: Math.min(slider_size.width  + (slider_size.left || 0), this._slider_mask.width-40),
-            backgroundColor: '#000000',
+            backgroundColor: knobColor,
             borderRadius: 2
         }}>
         </View>
