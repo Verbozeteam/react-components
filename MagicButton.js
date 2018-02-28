@@ -21,6 +21,7 @@ type PropsType = {
   onPress?: () => any,
   onPressIn?: () => any,
   onPressOut?: () => any,
+  haptic?: () => void,
 
   extraStyle?: Object | number,
 
@@ -54,6 +55,7 @@ export default class MagicButton extends Component<PropsType, StateType> {
     onPress: () => null,
     onPressIn: () => null,
     onPressOut: () => null,
+    haptic: () => {},
 
     extraStyle: {},
 
@@ -75,13 +77,14 @@ export default class MagicButton extends Component<PropsType, StateType> {
   }
 
   onPressIn() {
-    const { onPressIn, enabled } = this.props;
+    const { onPressIn, enabled, haptic } = this.props;
 
     if (enabled) {
       this.setState({
         hover: true
       });
 
+      haptic();
       onPressIn();
     }
   }

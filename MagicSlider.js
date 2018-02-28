@@ -12,6 +12,7 @@ type PropsType = {
   increment?: number,
   glowColor?: string,
   onChange?: number => any,
+  haptic?: () => void,
   disabled?: boolean,
   showKnob?: boolean,
 
@@ -34,6 +35,7 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
     text: "",
     textColor: '#000000',
     onChange: (n: number) => null,
+    haptic: () => {},
     extraStyle: {},
     increment: 1,
     disabled: false,
@@ -69,7 +71,7 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
   _container_ref: Object;
 
   componentWillMount() {
-    const { blockParentScroll, unblockParentScroll } = this.props;
+    const { unblockParentScroll } = this.props;
 
     /* create touch responder */
     this._panResponder = PanResponder.create({
@@ -83,10 +85,19 @@ export default class MagicSlider extends React.Component<PropsType, StateType> {
       onPanResponderMove: this.onPanResponderMove.bind(this),
       onPanResponderRelease: this.onPanResponderRelease.bind(this),
 
-      onPanResponderStart: blockParentScroll,
+      onPanResponderStart: this.onPanResponderStart.bind(this),
       onPanResponderEnd: unblockParentScroll,
       onPanResponderTerminate: unblockParentScroll
     });
+  }
+
+  onPanResponderStart(evt: Object, gestureState: Object) {
+    const { haptic, disabled, blockParentScroll } = this.props;
+
+    if (!disabled) {
+      blockParentScroll();
+      haptic();
+    }
   }
 
   onPanResponderGrant(evt: Object, gestureState: Object) {

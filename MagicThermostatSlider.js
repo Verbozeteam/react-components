@@ -12,6 +12,7 @@ type PropsType = {
   value: number,
   enabled?: boolean,
   onChange?: (n: number) => any,
+  haptic?: () => void,
   round?: (n: number) => number | string,
 
   numDashes?: number,
@@ -39,6 +40,7 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
 
     enabled: true,
     onChange: (n: number) => null,
+    onTouch: () => {},
     round: (n: number) => n,
 
     numDashes: 35,
@@ -70,7 +72,7 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
   _container_ref: React.Ref<View>;
 
   componentWillMount() {
-    const { blockParentScroll, unblockParentScroll } = this.props;
+    const { unblockParentScroll } = this.props;
 
     /* create touch responder */
     this._panResponder = PanResponder.create({
@@ -83,10 +85,19 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
       onPanResponderMove: this.onPanResponderMove.bind(this),
       onPanResponderRelease: this.onPanResponderRelease.bind(this),
 
-      onPanResponderStart: blockParentScroll,
+      onPanResponderStart: this.onPanResponderStart.bind(this),
       onPanResponderEnd: unblockParentScroll,
       onPanResponderTerminate: unblockParentScroll
     });
+  }
+
+  onPanResponderStart(evt: Object, gestureState: Object) {
+    const { haptic, enabled, blockParentScroll } = this.props;
+
+    if (enabled) {
+      blockParentScroll();
+      haptic();
+    }
   }
 
   onPanResponderGrant(evt: Object, gestureState: Object) {
