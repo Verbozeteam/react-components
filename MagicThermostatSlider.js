@@ -52,6 +52,7 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
     knobColor: '#D8D8D8',
 
     blockParentScroll: () => {},
+    haptic: () => {},
     unblockParentScroll: () => {},
   };
 
