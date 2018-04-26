@@ -127,16 +127,15 @@ export default class MagicThermostatSlider extends React.Component<PropsType, St
       return;
 
     var new_value = (x - this._x_pos - margin / 2) / (width - margin) *
-      minTemp + (maxTemp - minTemp);
+      (maxTemp - minTemp) + minTemp;
     new_value = round(Math.min(Math.max(new_value, minTemp), maxTemp));
 
-    if (new_value != last_value && onChange) {
+    if (new_value != last_value && onChange)
       onChange(new_value);
-    }
 
     this.setState({
       dragging: true,
-      last_value: current_value,
+      last_value: new_value,
       current_value: new_value
     });
   }
